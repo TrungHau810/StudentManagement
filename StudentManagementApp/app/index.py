@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from flask.globals import app_ctx
+
 
 app = Flask(__name__)
 
