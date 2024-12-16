@@ -1,8 +1,7 @@
-import random
+from datetime import datetime
 from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, intersect
-
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
 from app import db, app
 from enum import Enum as RoleEnum
 import hashlib
@@ -21,16 +20,19 @@ class Grade(RoleEnum):
     Grade_12 = 3
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(255), nullable=False)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
+    name = Column(String(255), nullable=False)
     birthday = Column(DATETIME, nullable=False)
     address = Column(String(255), nullable=False)
     sex = Column(Integer, nullable=False)
     email = Column(String(100), nullable=False)
     user_role = Column(Enum(UserRole))
+
+    def __str__(self):
+        return self.name
 
 
 class HocSinh(db.Model):
@@ -86,7 +88,7 @@ class HocSinh_Lop(db.Model):
     ma_lop = Column(Integer, ForeignKey(Classroom.id), primary_key=True)
 
 
-class User_MonHoc():
+class User_MonHoc(db.Model):
     id_user = Column(Integer, ForeignKey(User.id), primary_key=True)
     ma_lop = Column(Integer, ForeignKey(Classroom.id), primary_key=True)
     ma_mh = Column(Integer, ForeignKey(MonHoc.ma_mon_hoc), primary_key=True)
@@ -100,3 +102,21 @@ class ChiTietDiem_BangDiem(db.Model):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        u = User(name="Trần Trung Hậu", username="tthau",
+             password=str(hashlib.md5("12345".encode('utf-8')).hexdigest()),
+             birthday=datetime.strptime("2004-10-08", "%Y-%m-%d"), address="TP.HCM", sex=1,
+             email="2251050029hau@ou.edu.vn", user_role=UserRole.ADMIN)
+        db.session.add(u)
+        db.session.commit()
+    # data_user = [{
+    #     "name" : "Trần Trung Hậu",
+    # "username" :"tthau"
+    # "password" : str(hashlib.md5("12345".encode('utf-8')).hexdigest())
+    # "birthday" :
+    # "address" :
+    # "sex" :
+    # "email" :
+    # "user_role" :
+    # }, {
+    #
+    # }]
