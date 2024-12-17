@@ -1,6 +1,4 @@
 from datetime import datetime
-
-from setuptools.command.easy_install import sys_executable
 from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
@@ -46,6 +44,9 @@ class HocSinh(db.Model):
     email = Column(String(100), nullable=False)
     id_bang_diem = relationship('BangDiem', backref='hoc_sinh', lazy=False)
 
+    def __str__(self):
+        return self.fullname
+
 
 class BangDiem(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -53,11 +54,17 @@ class BangDiem(db.Model):
     hoc_ky = relationship('HocKy', backref='bang_diem', lazy=True)
     id_hoc_sinh = Column(Integer, ForeignKey(HocSinh.id), nullable=False)
 
+    def __str__(self):
+        return self.id
+
 
 class MonHoc(db.Model):
     ma_mon_hoc = Column(Integer, primary_key=True, autoincrement=True)
     ten_mon_hoc = Column(String(100), nullable=False)
-    ma_bang_diem = Column(Integer, ForeignKey(BangDiem.id), nullable=False)
+    ma_bang_diem = Column(Integer, ForeignKey(BangDiem.id))
+
+    def __str__(self):
+        return self.ten_mon_hoc
 
 
 class Classroom(db.Model):
@@ -66,11 +73,17 @@ class Classroom(db.Model):
     si_so = Column(Integer, nullable=False)
     grade = Column(Enum(Grade))
 
+    def __str__(self):
+        return self.name
+
 
 class HocKy(db.Model):
     ma_hk = Column(String(50), primary_key=True)
     nam_hoc = Column(String(50), nullable=False)
     id_bang_diem = Column(Integer, ForeignKey(BangDiem.id), nullable=False)
+
+    def __str__(self):
+        return self.ma_hk
 
 
 class ChiTietDiem(db.Model):
@@ -103,34 +116,34 @@ class ChiTietDiem_BangDiem(db.Model):
 
 if __name__ == '__main__':
     with app.app_context():
-        # db.create_all()
-        # u1 = User(name="Trần Trung Hậu", username="tthau123",
-        #           password=str(hashlib.md5("12345".encode('utf-8')).hexdigest()),
-        #           birthday=datetime.strptime("2004-10-08", "%Y-%m-%d"), address="TP.HCM", sex=1,
-        #           email="tthau@ou.edu.vn", user_role=UserRole.ADMIN)
-        #
-        # u2 = User(name="Nguyễn Văn A", username="nva",
-        #           password=str(hashlib.md5("abc123".encode('utf-8')).hexdigest()),
-        #           birthday=datetime.strptime("2001-01-05", "%Y-%m-%d"), address="TP.HCM", sex=1,
-        #           email="nva@ou.edu.vn", user_role=UserRole.STAFF)
-        #
-        # u3 = User(name="Trần Thị B", username="ttb",
-        #           password=str(hashlib.md5("ttb123".encode('utf-8')).hexdigest()),
-        #           birthday=datetime.strptime("2004-10-08", "%Y-%m-%d"), address="Thủ Đức", sex=1,
-        #           email="2251050029hau@ou.edu.vn", user_role=UserRole.ADMIN)
-        #
-        # u4 = User(name="Trần Thanh Sang", username="ttsang",
-        #           password=str(hashlib.md5("2323".encode('utf-8')).hexdigest()),
-        #           birthday=datetime.strptime("2003-03-02", "%Y-%m-%d"), address="Nhà Bè", sex=1,
-        #           email="2253012087sang@ou.edu.vn", user_role=UserRole.STAFF)
-        #
-        # u5 = User(name="Phạm Văn Bé", username="pvb456",
-        #           password=str(hashlib.md5("pvb1234".encode('utf-8')).hexdigest()),
-        #           birthday=datetime.strptime("2003-10-04", "%Y-%m-%d"), address="Quận 7", sex=1,
-        #           email="pvb@ou.edu.vn", user_role=UserRole.TEACHER)
-        #
-        # db.session.add_all([u1, u2, u3, u4, u5])
-        # db.session.commit()
+        db.create_all()
+        u1 = User(name="Trần Trung Hậu", username="tthau123",
+                  password=str(hashlib.md5("12345".encode('utf-8')).hexdigest()),
+                  birthday=datetime.strptime("2004-10-08", "%Y-%m-%d"), address="TP.HCM", sex=1,
+                  email="tthau@ou.edu.vn", user_role=UserRole.ADMIN)
+
+        u2 = User(name="Nguyễn Văn A", username="nva",
+                  password=str(hashlib.md5("abc123".encode('utf-8')).hexdigest()),
+                  birthday=datetime.strptime("2001-01-05", "%Y-%m-%d"), address="TP.HCM", sex=1,
+                  email="nva@ou.edu.vn", user_role=UserRole.STAFF)
+
+        u3 = User(name="Trần Thị B", username="ttb",
+                  password=str(hashlib.md5("ttb123".encode('utf-8')).hexdigest()),
+                  birthday=datetime.strptime("2004-10-08", "%Y-%m-%d"), address="Thủ Đức", sex=1,
+                  email="2251050029hau@ou.edu.vn", user_role=UserRole.ADMIN)
+
+        u4 = User(name="Trần Thanh Sang", username="ttsang",
+                  password=str(hashlib.md5("2323".encode('utf-8')).hexdigest()),
+                  birthday=datetime.strptime("2003-03-02", "%Y-%m-%d"), address="Nhà Bè", sex=1,
+                  email="2253012087sang@ou.edu.vn", user_role=UserRole.STAFF)
+
+        u5 = User(name="Phạm Văn Bé", username="pvb456",
+                  password=str(hashlib.md5("pvb1234".encode('utf-8')).hexdigest()),
+                  birthday=datetime.strptime("2003-10-04", "%Y-%m-%d"), address="Quận 7", sex=1,
+                  email="pvb@ou.edu.vn", user_role=UserRole.TEACHER)
+
+        db.session.add_all([u1, u2, u3, u4, u5])
+        db.session.commit()
 
         data_hs = [{
             'fullname': 'Trần Văn Hậu',
@@ -163,25 +176,20 @@ if __name__ == '__main__':
         db.session.commit()
 
         data_mh = [{
-            'ma_mon_hoc': 'MATH',
             'ten_mon_hoc': 'Toán'
         }, {
-            'ma_mon_hoc': 'LITER',
             'ten_mon_hoc': 'Ngữ văn'
         }, {
-            'ma_mon_hoc': 'ENG',
             'ten_mon_hoc': 'Tiếng anh'
         }, {
-            'ma_mon_hoc': 'CHEMIS',
             'ten_mon_hoc': 'Hoá học'
         }, {
-            'ma_mon_hoc': 'PHYS',
             'ten_mon_hoc': 'Vật lý'
         }]
 
         for mh in data_mh:
-            mh = HocSinh(ma_mon_hoc=mh['ma_mon_hoc'],
-                         ten_mon_hoc=mh['ten_mon_hoc'])
+            mh = HocSinh(ten_mon_hoc=mh['ten_mon_hoc'])
+
             db.session.add(mh)
 
         db.session.commit()

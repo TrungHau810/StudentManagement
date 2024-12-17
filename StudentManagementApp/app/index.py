@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import dao
-from app import app, db, login
-from app.models import UserRole
+from app import app, login
 from flask_login import login_user, logout_user, login_required
 
 
@@ -57,6 +56,7 @@ def scores_input_view():
 
 
 
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    with app.app_context():
+        from app import admin
+        app.run(debug=True)
