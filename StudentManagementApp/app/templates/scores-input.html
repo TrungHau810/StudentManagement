@@ -2,37 +2,6 @@
 
 {% block content %}
 
-<div class="container mt-5">
-    <h1 class="text-center mb-4">Student Grade Input Form</h1>
-    <form>
-        <div class="mb-3">
-            <label for="studentName" class="form-label">Student Name</label>
-            <input type="text" class="form-control" id="studentName" placeholder="Enter student's name" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="studentID" class="form-label">Student ID</label>
-            <input type="text" class="form-control" id="studentID" placeholder="Enter student ID" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="subject" class="form-label">Subject</label>
-            <select class="form-select" id="subject" required>
-                <option selected disabled>Choose a subject</option>
-                <option value="math">Mathematics</option>
-                <option value="science">Science</option>
-                <option value="history">History</option>
-                <option value="english">English</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label for="score" class="form-label">Score</label>
-            <input type="number" class="form-control" id="score" placeholder="Enter score" min="0" max="100" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-</div>
+    <h1 class="text-center mb-4">Nhập điểm</h1>
 
 {% endblock %}
