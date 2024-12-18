@@ -1,6 +1,6 @@
 import hashlib
 from app import db
-from app.models import User, UserRole, MonHoc, HocSinh, BangDiem
+from app.models import User, UserRole, MonHoc, HocSinh, BangDiem, ChiTietDiem
 
 
 def auth_user(username, password, role=None):
@@ -8,9 +8,6 @@ def auth_user(username, password, role=None):
 
     user = User.query.filter(User.username.__eq__(username.strip()),
                              User.password.__eq__(password))
-    # if user:
-    #     user = user.filter(User.user_role.__eq__(role))
-
     return user.first()
 
 

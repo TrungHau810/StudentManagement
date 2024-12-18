@@ -1,0 +1,94 @@
+{% extends '/layout/base.html' %}
+
+{% block content %}
+
+<div class="container my-5">
+    <!-- Header -->
+    <h1 class="text-center mb-4">Quản lý điểm học sinh</h1>
+
+    <!-- Dropdown chọn lớp -->
+    <div class="d-flex align-items-center mb-3">
+        <div class="me-3">
+            <label for="classDropdown" class="form-label">Chọn Lớp</label>
+            <select id="classDropdown" class="form-select">
+                <option value="class1" selected>Lớp 10</option>
+                <option value="class2">Lớp 11</option>
+                <option value="class3">Lớp 12</option>
+            </select>
+        </div>
+
+        <!-- Học kỳ -->
+        <div class="me-3">
+            <label for="semester" class="form-label">Chọn Học Kỳ</label>
+            <select id="semester" class="form-select">
+                <option value="1">Học Kỳ 1</option>
+                <option value="2">Học Kỳ 2</option>
+            </select>
+        </div>
+
+        <!-- Năm học -->
+        <div>
+            <label for="academicYear" class="form-label">Chọn Năm Học</label>
+            <select id="academicYear" class="form-select">
+                <option value="2023">2023 - 2024</option>
+                <option value="2024">2024 - 2025</option>
+                <option value="2025">2025 - 2026</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Content area for classes -->
+    <div id="classContent">
+        <!-- Lớp 10 -->
+        <div id="class1" class="class-panel">
+            <h2 class="mb-3">Lớp 10</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Mã Học Sinh</th>
+                        <th>Họ Tên</th>
+                        <th>Toán</th>
+                        <th>Văn</th>
+                        <th>Anh Văn</th>
+                        <th>Vật Lý</th>
+                        <th>Hoá Học</th>
+                        <th>Sinh Học</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>HS001</td>
+                        <td>Nguyễn Văn A</td>
+                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
+                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
+                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
+                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
+                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
+                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Lớp 11 -->
+        <div id="class2" class="class-panel" style="display: none;">
+            <h2 class="mb-3">Lớp 11</h2>
+            <p>Danh sách điểm lớp 11 sẽ được hiển thị tại đây.</p>
+        </div>
+
+        <!-- Lớp 12 -->
+        <div id="class3" class="class-panel" style="display: none;">
+            <h2 class="mb-3">Lớp 12</h2>
+            <p>Danh sách điểm lớp 12 sẽ được hiển thị tại đây.</p>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="text-center mt-4">
+        <button class="btn btn-primary">Lưu Điểm</button>
+    </div>
+</div>
+
+{% endblock %}
