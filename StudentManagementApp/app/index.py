@@ -38,9 +38,6 @@ def logout_process():
     return redirect('/login')
 
 
-
-
-
 @login.user_loader
 def load_user(user_id):
     return dao.get_user_by_id(user_id)

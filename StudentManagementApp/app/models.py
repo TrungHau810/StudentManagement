@@ -1,4 +1,5 @@
 import json
+import random
 from datetime import datetime
 from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import relationship
@@ -34,7 +35,7 @@ class User(db.Model, UserMixin):
     user_role = Column(Enum(UserRole))
 
     def __str__(self):
-        return self.name
+        return self.ho_ten
 
     def get_role(self):
         return self.user_role
@@ -50,7 +51,7 @@ class HocSinh(db.Model):
     id_bang_diem = relationship('BangDiem', backref='hoc_sinh', lazy=False)
 
     def __str__(self):
-        return self.fullname
+        return self.ho_ten
 
 
 class BangDiem(db.Model):
@@ -79,7 +80,7 @@ class LopHoc(db.Model):
     khoi = Column(Enum(Grade))
 
     def __str__(self):
-        return self.name
+        return self.ten_lop
 
 
 class HocKy(db.Model):
@@ -190,12 +191,23 @@ def load_hocky_to_db(json_file):
     db.session.commit()
 
 
+def add_hocsinh_to_lop():
+    hs = HocSinh.query.all()
+    lop = LopHoc.query.all()
+    for s in hs:
+        lophoc = random.choice(lop)
+        hs_lop = HocSinh_Lop(ma_hs=s.id, ma_lop=lophoc.id)
+        db.session.add(hs_lop)
+    db.session.commit()
+
+
 if __name__ == '__main__':
     with app.app_context():
-        # Tạo models cho stu_manage_db
-        db.create_all()
-        # Nạp data các model vào db
-        load_user_to_db('data/user.json')
-        load_stu_to_db('data/hocsinh.json')
-        load_monhoc_to_db('data/monhoc.json')
-        load_lophoc_to_db('data/lophoc.json')
+        # # Tạo models cho stu_manage_db
+        # db.create_all()
+        # # Nạp data các model vào db
+        # load_user_to_db('data/user.json')
+        # load_stu_to_db('data/hocsinh.json')
+        # load_monhoc_to_db('data/monhoc.json')
+        # load_lophoc_to_db('data/lophoc.json')
+        add_hocsinh_to_lop()

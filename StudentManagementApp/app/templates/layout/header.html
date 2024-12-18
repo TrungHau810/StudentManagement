@@ -1,11 +1,17 @@
-<nav class="navbar navbar-expand-lg bg-primary navbar-dark">
+<nav class="navbar navbar-expand-lg bg-primary navbar-dark p-3">
     <div class="container-fluid">
+        <!-- Logo hoặc Tiêu đề -->
         <a class="navbar-brand fw-bold" href="/">Student Management</a>
+
+        <!-- Nút Toggle cho Mobile -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
+        <!-- Nội dung Thanh điều hướng -->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <!-- Menu trái -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="/">Trang chủ</a>
@@ -14,7 +20,6 @@
                 <li class="nav-item">
                     <a class="nav-link text-light" href="#">Tiếp nhận học sinh</a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link text-light" href="#">Lập danh sách</a>
                 </li>
@@ -29,11 +34,10 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="#">Chỉnh sửa điêm</a></li>
+                        <li><a class="dropdown-item" href="#">Chỉnh sửa điểm</a></li>
                         <li><a class="dropdown-item" href="#">Xuất báo cáo điểm</a></li>
                     </ul>
                 </li>
-                <!--Xem thêm tuỳ chọn khác-->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown"
                        aria-expanded="false">
@@ -45,24 +49,19 @@
                     </ul>
                 </li>
                 {% endif %}
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 {% if current_user.is_authenticated %}
+                <li class="nav-link text-light">Chào {{ current_user.ho_ten }}!</li>
                 <li class="nav-item">
                     <a class="nav-link text-light" href="/logout">Đăng xuất</a>
                 </li>
-                {% else%}
+                {% else %}
                 <li class="nav-item">
                     <a class="nav-link text-light" href="/login">Đăng nhập</a>
                 </li>
                 {% endif %}
-
             </ul>
-            <form class="d-flex align-items-center" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-success" style="width: 150px; height: 50px;" type="button">Đăng nhập</button>
-
-            </form>
-
-
         </div>
     </div>
 </nav>
