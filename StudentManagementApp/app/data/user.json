@@ -1,0 +1,53 @@
+[
+  {
+    "ho_ten": "Trần Trung Hậu",
+    "username": "tthau123",
+    "password": "12345",
+    "ngay_sinh": "2004-10-08",
+    "dia_chi": "TP.HCM",
+    "gioi_tinh": 1,
+    "email": "tthau@ou.edu.vn",
+    "user_role": "ADMIN"
+  },
+  {
+    "ho_ten": "Nguyễn Văn A",
+    "username": "nva",
+    "password": "abc123",
+    "ngay_sinh": "2001-01-05",
+    "dia_chi": "TP.HCM",
+    "gioi_tinh": 1,
+    "email": "nva@ou.edu.vn",
+    "user_role": "STAFF"
+  },
+  {
+    "ho_ten": "Trần Thị B",
+    "username": "ttb",
+    "password": "ttb123",
+    "ngay_sinh": "2004-10-08",
+    "dia_chi": "Thủ Đức",
+    "gioi_tinh": 2,
+    "email": "2251050029hau@ou.edu.vn",
+    "user_role": "ADMIN"
+  },
+  {
+    "ho_ten": "Trần Thanh Sang",
+    "username": "ttsang",
+    "password": "2323",
+    "ngay_sinh": "2003-03-02",
+    "dia_chi": "Nhà Bè",
+    "gioi_tinh": 1,
+    "email": "2253012087sang@ou.edu.vn",
+    "user_role": "STAFF"
+  },
+  {
+    "ho_ten": "Phạm Văn Bé",
+    "username": "pvb456",
+    "password": "pvb123",
+    "ngay_sinh": "2003-10-04",
+    "dia_chi": "Quận 7",
+    "gioi_tinh": 1,
+    "email": "pvb@ou.edu.vn",
+    "user_role": "TEACHER"
+  }
+]
+

@@ -10,6 +10,7 @@
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="/">Trang chủ</a>
                 </li>
+                {% if current_user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link text-light" href="#">Tiếp nhận học sinh</a>
                 </li>
@@ -23,7 +24,7 @@
                         Học tập
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/scores-input">Nhập điểm</a></li>
+                        <li><a class="dropdown-item" href="/nhap_diem">Nhập điểm</a></li>
                         <li><a class="dropdown-item" href="#">Xuất điểm</a></li>
                         <li>
                             <hr class="dropdown-divider">
@@ -43,6 +44,7 @@
                         <li><a class="dropdown-item" href="#">Lập báo cáo</a></li>
                     </ul>
                 </li>
+                {% endif %}
                 {% if current_user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link text-light" href="/logout">Đăng xuất</a>

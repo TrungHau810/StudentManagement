@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect
+import math
+from flask import render_template, request, redirect, session, jsonify
 import dao
 from app import app, login
 from flask_login import login_user, logout_user, login_required
+from app.models import UserRole
 
 
 # Trang chủ
@@ -10,7 +12,7 @@ def index():
     return render_template("index.html")
 
 
-# Login
+""" Login user """
 @app.route("/login", methods=['get', 'post'])
 def login_view():
     if request.method.__eq__('POST'):
@@ -19,7 +21,12 @@ def login_view():
         user = dao.auth_user(username=username, password=password)
         if user:
             login_user(user=user)
-            return redirect('/')
+            if user.get_role() == UserRole.ADMIN:
+                return redirect('/admin')
+            if user.get_role() == UserRole.TEACHER:
+                return redirect('/nhap_diem')
+            if user.get_role() == UserRole.STAFF:
+                return redirect('/')
 
     return render_template('login.html')
 
@@ -31,16 +38,6 @@ def logout_process():
     return redirect('/login')
 
 
-# Login với admin
-# @app.route("/login-admin", methods=['post'])
-# def login_admin_view():
-#     username = request.form.get('username')
-#     password = request.form.get('password')
-#     user = dao.auth_user(username=username, password=password, role=UserRole.ADMIN)
-#     if user:
-#         login_user(user=user)
-#
-#     return redirect("/admin")
 
 
 
@@ -50,9 +47,9 @@ def load_user(user_id):
 
 
 # Nhập điểm
-@app.route("/scores-input")
+@app.route("/nhap_diem")
 def scores_input_view():
-    return render_template('scores-input.html')
+    return render_template('nhap_diem.html')
 
 
 
