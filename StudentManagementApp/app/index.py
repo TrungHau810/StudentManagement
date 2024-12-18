@@ -1,35 +1,3 @@
-from flask import Flask, render_template, request, redirect
-import dao
-from app import app, login
-from flask_login import login_user, logout_user, login_required
-
-
-# Trang chủ
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
-# Login
-@app.route("/login", methods=['get', 'post'])
-def login_view():
-    if request.method.__eq__('POST'):
-        username = request.form.get('username')
-        password = request.form.get('password')
-        user = dao.auth_user(username=username, password=password)
-        if user:
-            login_user(user=user)
-            return redirect('/')
-
-    return render_template('login.html')
-
-
-# Logout
-@app.route("/logout")
-def logout_process():
-    logout_user()
-    return redirect('/login')
-
 
 from flask import Flask, render_template, request, redirect, url_for
 from pymysql import DATETIME
@@ -73,22 +41,19 @@ def logout_process():
 @app.route("/addstudents", methods=["get", "post"])
 def add_student():
     if request.method.__eq__('POST'):
-        fullname = request.form.get('fullname')
-        sex = int(request.form.get('sex'))
-        birthday = datetime.strptime(request.form.get('birthday'), '%Y-%m-%d')
-        address = request.form.get('address')
+        ho_ten = request.form.get('ho_ten')
+        gioi_tinh = int(request.form.get('gioi_tinh'))
+        ngay_sinh = datetime.strptime(request.form.get('ngay_sinh'), '%Y-%m-%d')
+        dia_chi = request.form.get('dia_chi')
         email = request.form.get('email')
 
         hs = HocSinh(
-            fullname=fullname,
-            sex=sex,
-            birthday=birthday,
-            address=address,
+            ho_ten=ho_ten,
+            gioi_tinh=gioi_tinh,
+            ngay_sinh=ngay_sinh,
+            dia_chi=dia_chi,
             email=email
         )
-
-
-
         # Thêm dữ liệu vào
 
         db.session.add(hs)
