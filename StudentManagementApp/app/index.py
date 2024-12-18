@@ -1,7 +1,12 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for
+from pymysql import DATETIME
+
 import dao
-from app import app, login
+from app import app, login, db
 from flask_login import login_user, logout_user, login_required
+from app.models import HocSinh
+
+from datetime import datetime
 
 
 # Trang chủ
@@ -29,6 +34,39 @@ def login_view():
 def logout_process():
     logout_user()
     return redirect('/login')
+
+
+#add student
+@app.route("/addstudents", methods=["get", "post"])
+def add_student():
+    if request.method.__eq__('POST'):
+        fullname = request.form.get('fullname')
+        sex = int(request.form.get('sex'))
+        birthday = datetime.strptime(request.form.get('birthday'), '%Y-%m-%d')
+        address = request.form.get('address')
+        email = request.form.get('email')
+
+        hs = HocSinh(
+            fullname=fullname,
+            sex=sex,
+            birthday=birthday,
+            address=address,
+            email=email
+        )
+
+
+
+        # Thêm dữ liệu vào
+
+        db.session.add(hs)
+        db.session.commit()
+
+        return redirect(url_for('index'))
+    return render_template('student_admissions.html')
+
+
+
+
 
 
 # Login với admin

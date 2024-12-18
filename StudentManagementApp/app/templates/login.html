@@ -10,7 +10,8 @@
 {% endif %}
 
 <form method="post" action="/login">
-
+    <div class="d-flex justify-content-center align-items-center mt-3 mb-3">
+<div class="card p-4  bg-" style="width: 50%; max-width: 600px;">
     <div class="form-floating mb-3 mt-3">
         <input type="text" class="form-control" id="username" placeholder="Tên đăng nhập" name="username">
         <label for="username">Tên đăng nhập</label>
@@ -22,7 +23,8 @@
     <div class="form-floating mb-3 mt-3">
         <button type="submit" class="btn btn-success">Đăng nhập</button>
     </div>
-
+</div>
+        </div>
 </form>
 
 {% endblock %}
