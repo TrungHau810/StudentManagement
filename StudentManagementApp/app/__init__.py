@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from urllib.parse import quote
 from flask_login import LoginManager
 import cloudinary
-
+from sqlalchemy import Integer
 
 app = Flask(__name__)
 
@@ -21,3 +21,6 @@ cloudinary.config(
     api_secret="Abk-RA6C6MUKDV34nOuFDhpLFjs",
     secure=True
 )
+
+# sỉ số tối đa của 1 lớp
+max_si_so = 40

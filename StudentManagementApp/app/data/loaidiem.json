@@ -1,14 +1,18 @@
-{
-  "name": "$name$",
-  "version": "$version$",
-  "description": "$END$",
-  "main": "$main$",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+[
+  {
+    "id": 1,
+    "ten_loai": "Điểm miệng"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/TrungHau810/StudentManagement.git"
+  {
+    "id": 2,
+    "ten_loai": "Điểm 15 phút"
   },
-  "private": true
-}
+  {
+    "id": 1,
+    "ten_loai": "Điểm 1 tiết"
+  },
+  {
+    "id": 1,
+    "ten_loai": "Điểm cuối kỳ"
+  }
+]

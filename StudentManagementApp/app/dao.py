@@ -1,6 +1,6 @@
 import hashlib
 import unidecode
-from flask.cli import with_appcontext
+from models import HocSinh, LopHoc, HocSinhLopHoc
 
 from app import db
 from app.models import User, UserRole, MonHoc, HocSinh, BangDiem, ChiTietDiem
@@ -50,3 +50,9 @@ def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, avatar):
     db.session.add(hs)
     db.session.commit()
 
+
+# Add học sinh vào lớp
+def add_hocsinh_to_lop(id_hs, id_lop):
+    hs_lop = HocSinhLopHoc(ma_hs=id_hs, ma_lop=id_lop)
+    db.session.add(hs_lop)
+    db.session.commit()

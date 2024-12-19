@@ -209,6 +209,15 @@ def load_hocky_to_db(json_file):
     db.session.commit()
 
 
+def load_loaidiem_to_db(json_file):
+    data = read_json_file(json_file)
+
+    for item in data:
+        ld = LoaiDiem(ten_loai=item['ten_loai'])
+        db.session.add(ld)
+    db.session.commit()
+
+
 def add_hocsinh_to_lop():
     hs = HocSinh.query.all()
     lop = LopHoc.query.all()
@@ -251,26 +260,15 @@ def add_lop_to_hocky():
     db.session.commit()
 
 
-def add_bangdiem():
-    hs = HocSinh.query.all()
-    for h in hs:
-        bangdiem = BangDiem(id_hoc_sinh=h.id)
-        db.session.add(bangdiem)
-    db.session.commit()
-
 def add_stu_to_score():
     students = HocSinh.query.all()
     for stu in students:
-        existing_scoreboard = BangDiem.query.filter_by(id_hoc_sinh=stu.id).first()
-        if not existing_scoreboard:
+        bd = BangDiem.query.filter_by(id_hoc_sinh=stu.id).first()
+        if not bd:
             bang_diem = BangDiem(id_hoc_sinh=stu.id)
             db.session.add(bang_diem)
 
     db.session.commit()
-
-
-def add_chitietdiem_to_bangdiem():
-    pass
 
 
 if __name__ == '__main__':
@@ -287,4 +285,4 @@ if __name__ == '__main__':
         add_lop_to_monhoc()
         add_teacher_to_monhoc()
         add_lop_to_hocky()
-        add_bangdiem()
+        load_loaidiem_to_db('data/loaidiem.json')

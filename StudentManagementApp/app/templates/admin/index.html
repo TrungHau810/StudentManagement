@@ -2,7 +2,15 @@
 
 {% block body %}
 
-<h1>ADMIN</h1>
+{% if current_user.is_authenticated %}
+<h3>Chào {{ current_user.ho_ten }}!</h3>
+<h1 class="text-center">Chào mừng đến trang quản trị!</h1>
 
+
+{% else %}
+
+<h1>Vui lòng <a href="/login">đăng nhập</a> để tiếp tục với Admin</h1>
+
+{% endif %}
 
 {% endblock %}
