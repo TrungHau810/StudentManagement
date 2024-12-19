@@ -7,7 +7,6 @@ from app import db, app
 from enum import Enum as RoleEnum
 import hashlib
 from flask_login import UserMixin
-from app import data
 
 
 class UserRole(RoleEnum):
@@ -18,9 +17,9 @@ class UserRole(RoleEnum):
 
 
 class Grade(RoleEnum):
-    Grade_10 = 1
-    Grade_11 = 2
-    Grade_12 = 3
+    Grade_10 = 10
+    Grade_11 = 11
+    Grade_12 = 12
 
 
 class User(db.Model, UserMixin):
@@ -271,18 +270,18 @@ def add_stu_to_score():
     db.session.commit()
 
 
-if __name__ == '__main__':
-    with app.app_context():
-        # Tạo models cho stu_manage_db
-        db.create_all()
-        # Nạp data các model vào db
-        load_user_to_db('data/user.json')
-        load_stu_to_db('data/hocsinh.json')
-        load_monhoc_to_db('data/monhoc.json')
-        load_lophoc_to_db('data/lophoc.json')
-        load_hocky_to_db('data/hocky.json')
-        add_hocsinh_to_lop()
-        add_lop_to_monhoc()
-        add_teacher_to_monhoc()
-        add_lop_to_hocky()
-        load_loaidiem_to_db('data/loaidiem.json')
+# if __name__ == '__main__':
+#     with app.app_context():
+        # # Tạo models cho stu_manage_db
+        # db.create_all()
+        # # Nạp data các model vào db
+        # load_user_to_db('data/user.json')
+        # load_stu_to_db('data/hocsinh.json')
+        # load_monhoc_to_db('data/monhoc.json')
+        # load_lophoc_to_db('data/lophoc.json')
+        # load_hocky_to_db('data/hocky.json')
+        # add_hocsinh_to_lop()
+        # add_lop_to_monhoc()
+        # add_teacher_to_monhoc()
+        # add_lop_to_hocky()
+        # load_loaidiem_to_db('data/loaidiem.json')
