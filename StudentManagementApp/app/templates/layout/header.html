@@ -17,39 +17,51 @@
                     <a class="nav-link active" aria-current="page" href="/">Trang chủ</a>
                 </li>
                 {% if current_user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link text-light"  href="{{ url_for('add_student') }}">Tiếp nhận học sinh</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Lập danh sách</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown"
-                       aria-expanded="false">
-                        Học tập
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/nhap_diem">Nhập điểm</a></li>
-                        <li><a class="dropdown-item" href="#">Xuất điểm</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
+                    {% if current_user.user_role.value == 4 %}
+                        <!-- Đối với học sinh -->
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="#">Kết quả học tập</a>
                         </li>
-                        <li><a class="dropdown-item" href="#">Chỉnh sửa điểm</a></li>
-                        <li><a class="dropdown-item" href="#">Xuất báo cáo điểm</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown"
-                       aria-expanded="false">
-                        Tuỳ chọn
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Sửa quy định</a></li>
-                        <li><a class="dropdown-item" href="#">Lập báo cáo</a></li>
-                    </ul>
-                </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" href="#">Thông báo</a>
+                        </li>
+                    {% else %}
+                    <!-- Đối với các vai trò khác (Admin, Teacher, Staff, v.v.) -->
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="{{ url_for('add_student') }}">Tiếp nhận học sinh</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="#">Lập danh sách</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            Học tập
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/nhap_diem">Nhập điểm</a></li>
+                            <li><a class="dropdown-item" href="#">Xuất điểm</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#">Chỉnh sửa điểm</a></li>
+                            <li><a class="dropdown-item" href="#">Xuất báo cáo điểm</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            Tuỳ chọn
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Sửa quy định</a></li>
+                            <li><a class="dropdown-item" href="#">Lập báo cáo</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
                 {% endif %}
             </ul>
+
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 {% if current_user.is_authenticated %}
                 <li class="nav-link text-light">Chào {{ current_user.ho_ten }}!</li>

@@ -1,9 +1,8 @@
 import json
 import random
 from datetime import datetime
-from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime
 from app import db, app
 from enum import Enum as RoleEnum
 import hashlib
@@ -12,9 +11,10 @@ from app import data
 
 
 class UserRole(RoleEnum):
-    ADMIN = 1,
-    TEACHER = 2,
+    ADMIN = 1
+    TEACHER = 2
     STAFF = 3
+    STUDENT = 4
 
 
 class Grade(RoleEnum):
@@ -28,10 +28,12 @@ class User(db.Model, UserMixin):
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
     ho_ten = Column(String(255), nullable=False)
-    ngay_sinh = Column(DATETIME, nullable=False)
+    ngay_sinh = Column(DateTime, nullable=False)
     dia_chi = Column(String(255), nullable=False)
+    """Nam: 0 -  Nữ: 1"""
     gioi_tinh = Column(Integer, nullable=False)
     email = Column(String(100), nullable=False)
+    avatar = Column(String(255), nullable=True)
     user_role = Column(Enum(UserRole))
 
     def __str__(self):
@@ -41,13 +43,8 @@ class User(db.Model, UserMixin):
         return self.user_role
 
 
-class HocSinh(db.Model):
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    ho_ten = Column(String(100), nullable=False)
-    gioi_tinh = Column(Integer, nullable=False)
-    ngay_sinh = Column(DATETIME, nullable=False)
-    dia_chi = Column(String(255), nullable=False)
-    email = Column(String(100), nullable=False)
+class HocSinh(User):
+    id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=True)
     id_bang_diem = relationship('BangDiem', backref='hoc_sinh', lazy=False)
 
     def __str__(self):
@@ -86,7 +83,7 @@ class LopHoc(db.Model):
 class HocKy(db.Model):
     ma_hk = Column(String(50), primary_key=True)
     nam_hoc = Column(String(50), nullable=False)
-    id_bang_diem = Column(Integer, ForeignKey(BangDiem.id), nullable=False)
+    id_bang_diem = Column(Integer, ForeignKey(BangDiem.id), nullable=True)
 
     def __str__(self):
         hoc_ky = f"Học kì {self.ma_hk[-1]}" if self.ma_hk else ''
@@ -94,34 +91,50 @@ class HocKy(db.Model):
 
 
 class ChiTietDiem(db.Model):
-    id = Column(String(50), primary_key=True)
-    loai_diem = Column(String(50), nullable=False)
-    gia_tri = Column(Float, nullable=False)
-    ghi_chu = Column(String(100), nullable=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    gia_tri = Column(Float, default=0)
 
 
-class Lop_MonHoc(db.Model):
+class LoaiDiem(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ten_loai = Column(String(50), nullable=False)
+
+
+class TinNhan(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    noi_dung = Column(String(255), nullable=False)
+    thoi_gian = Column(DateTime, default=datetime.now())
+    id_gv = Column(Integer, ForeignKey(User.id), nullable=True)
+    id_hs = Column(Integer, ForeignKey(HocSinh.id), nullable=True)
+
+
+class LoaiDiemChiTietDiem(db.Model):
+    lan = Column(Integer, primary_key=True)
+    id_loai_diem = Column(Integer, ForeignKey(LoaiDiem.id), primary_key=True)
+    id_chitiet_diem = Column(Integer, ForeignKey(ChiTietDiem.id))
+
+
+class LopHocMonHoc(db.Model):
     ma_lop = Column(Integer, ForeignKey(LopHoc.id), primary_key=True)
     ma_mh = Column(Integer, ForeignKey(MonHoc.ma_mon_hoc), primary_key=True)
 
 
-class HocSinh_Lop(db.Model):
+class HocSinhLopHoc(db.Model):
     ma_hs = Column(Integer, ForeignKey(HocSinh.id), primary_key=True)
     ma_lop = Column(Integer, ForeignKey(LopHoc.id), primary_key=True)
 
 
-class User_MonHoc(db.Model):
+class UserMonHoc(db.Model):
     id_user = Column(Integer, ForeignKey(User.id), primary_key=True)
-    ma_lop = Column(Integer, ForeignKey(LopHoc.id), primary_key=True)
     ma_mh = Column(Integer, ForeignKey(MonHoc.ma_mon_hoc), primary_key=True)
 
 
-class ChiTietDiem_BangDiem(db.Model):
+class BangDiemChiTietDiem(db.Model):
     ma_bang_diem = Column(Integer, ForeignKey(BangDiem.id), primary_key=True)
-    ma_diem = Column(String(50), ForeignKey(ChiTietDiem.id), primary_key=True)
+    ma_diem = Column(Integer, ForeignKey(ChiTietDiem.id), primary_key=True)
 
 
-class Lop_HocKy(db.Model):
+class LopHocHocKy(db.Model):
     id_lop = Column(Integer, ForeignKey(LopHoc.id), primary_key=True)
     id_hoc_ky = Column(String(50), ForeignKey(HocKy.ma_hk), primary_key=True)
 
@@ -143,8 +156,26 @@ def load_user_to_db(json_file):
                     dia_chi=item['dia_chi'],
                     gioi_tinh=item['gioi_tinh'],
                     email=item['email'],
+                    avatar=item['avatar'],
                     user_role=item['user_role'])
         db.session.add(user)
+    db.session.commit()
+
+
+def load_stu_to_db(json_file):
+    data = read_json_file(json_file)
+
+    for item in data:
+        student = HocSinh(ho_ten=item['ho_ten'],
+                          username=item['username'],
+                          password=str(hashlib.md5(item['password'].encode('utf-8')).hexdigest()),
+                          gioi_tinh=item['gioi_tinh'],
+                          ngay_sinh=item['ngay_sinh'],
+                          dia_chi=item['dia_chi'],
+                          email=item['email'],
+                          user_role=UserRole.STUDENT
+                          )
+        db.session.add(student)
     db.session.commit()
 
 
@@ -154,19 +185,6 @@ def load_monhoc_to_db(json_file):
     for item in data:
         mh = MonHoc(ten_mon_hoc=item['ten_mon_hoc'])
         db.session.add(mh)
-    db.session.commit()
-
-
-def load_stu_to_db(json_file):
-    data = read_json_file(json_file)
-
-    for item in data:
-        student = HocSinh(ho_ten=item['ho_ten'],
-                          gioi_tinh=item['gioi_tinh'],
-                          ngay_sinh=item['ngay_sinh'],
-                          dia_chi=item['dia_chi'],
-                          email=item['email'])
-        db.session.add(student)
     db.session.commit()
 
 
@@ -185,7 +203,7 @@ def load_hocky_to_db(json_file):
     data = read_json_file(json_file)
 
     for item in data:
-        hk = HocKy(ma_hk=item['ma_hk'],
+        hk = HocKy(ma_hk=str(item['ma_hk']),
                    nam_hoc=item['nam_hoc'])
         db.session.add(hk)
     db.session.commit()
@@ -196,18 +214,77 @@ def add_hocsinh_to_lop():
     lop = LopHoc.query.all()
     for s in hs:
         lophoc = random.choice(lop)
-        hs_lop = HocSinh_Lop(ma_hs=s.id, ma_lop=lophoc.id)
+        hs_lop = HocSinhLopHoc(ma_hs=s.id, ma_lop=lophoc.id)
         db.session.add(hs_lop)
     db.session.commit()
 
 
+def add_lop_to_monhoc():
+    lop = LopHoc.query.all()
+    monhoc = MonHoc.query.all()
+
+    for l in lop:
+        for mh in monhoc:
+            lop_mon = LopHocMonHoc(ma_lop=l.id, ma_mh=mh.ma_mon_hoc)
+            db.session.add(lop_mon)
+
+    db.session.commit()
+
+
+def add_teacher_to_monhoc():
+    teachers = User.query.filter_by(user_role=UserRole.TEACHER).all()
+    monhoc = MonHoc.query.all()
+    for t in teachers:
+        mh = random.choice(monhoc)
+        teach = UserMonHoc(id_user=t.id, ma_mh=mh.ma_mon_hoc)
+        db.session.add(teach)
+    db.session.commit()
+
+
+def add_lop_to_hocky():
+    lop = LopHoc.query.all()
+    hocky = HocKy.query.all()
+    for l in lop:
+        for hk in hocky:
+            lop_hk = LopHocHocKy(id_lop=l.id, id_hoc_ky=hk.ma_hk)
+            db.session.add(lop_hk)
+    db.session.commit()
+
+
+def add_bangdiem():
+    hs = HocSinh.query.all()
+    for h in hs:
+        bangdiem = BangDiem(id_hoc_sinh=h.id)
+        db.session.add(bangdiem)
+    db.session.commit()
+
+def add_stu_to_score():
+    students = HocSinh.query.all()
+    for stu in students:
+        existing_scoreboard = BangDiem.query.filter_by(id_hoc_sinh=stu.id).first()
+        if not existing_scoreboard:
+            bang_diem = BangDiem(id_hoc_sinh=stu.id)
+            db.session.add(bang_diem)
+
+    db.session.commit()
+
+
+def add_chitietdiem_to_bangdiem():
+    pass
+
+
 if __name__ == '__main__':
     with app.app_context():
-        # # Tạo models cho stu_manage_db
-        # db.create_all()
-        # # Nạp data các model vào db
-        # load_user_to_db('data/user.json')
-        # load_stu_to_db('data/hocsinh.json')
-        # load_monhoc_to_db('data/monhoc.json')
-        # load_lophoc_to_db('data/lophoc.json')
+        # Tạo models cho stu_manage_db
+        db.create_all()
+        # Nạp data các model vào db
+        load_user_to_db('data/user.json')
+        load_stu_to_db('data/hocsinh.json')
+        load_monhoc_to_db('data/monhoc.json')
+        load_lophoc_to_db('data/lophoc.json')
+        load_hocky_to_db('data/hocky.json')
         add_hocsinh_to_lop()
+        add_lop_to_monhoc()
+        add_teacher_to_monhoc()
+        add_lop_to_hocky()
+        add_bangdiem()

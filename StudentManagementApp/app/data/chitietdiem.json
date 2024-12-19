@@ -1,0 +1,8 @@
+[{
+  "loai_diem": "15 phút",
+  "gia_tri": 0
+},
+    loai_diem = Column(String(50), nullable=False)
+    gia_tri = Column(Float, nullable=False)
+    ghi_chu = Column(String(100), nullable=True)
+]
