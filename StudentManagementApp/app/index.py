@@ -3,8 +3,14 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import dao
 from app import app, login, db
 from flask_login import login_user, logout_user, login_required
-from app.models import UserRole, Grade, LopHoc
+from app.models import UserRole, Khoi, LopHoc
 from datetime import datetime
+from app.models import (User, GiaoVien, UserRole,
+                        GioiTinh, MonHoc, LopHoc,
+                        Khoa, Diem, KetQuaHocTap,
+                        LopHocKhoa, HocSinhLopHocKhoa,
+                        GiaoVienMonHoc, GiaoVienMonHocLopHocKhoa,
+                        HocKy, Khoi, LoaiDiem)
 
 
 # Trang chủ
@@ -106,5 +112,4 @@ def get_lop_by_khoi():
 if __name__ == "__main__":
     with app.app_context():
         from app import admin
-
         app.run(debug=True)

@@ -2,7 +2,12 @@ import hashlib
 import random
 import unidecode
 from app import db, app
-from app.models import User, UserRole, Grade, MonHoc, HocSinh, BangDiem, ChiTietDiem, HocSinhLopHoc, LopHoc
+from app.models import (User, GiaoVien, UserRole,
+                        GioiTinh, MonHoc, LopHoc,
+                        Khoa, Diem, KetQuaHocTap,
+                        LopHocKhoa, HocSinhLopHocKhoa,
+                        GiaoVienMonHoc, GiaoVienMonHocLopHocKhoa,
+                        HocKy, Khoi, LoaiDiem)
 
 
 def auth_user(username, password, role=None):
@@ -33,19 +38,18 @@ def generate_username(hoten):
 
 
 def random_id_lop():
-    x= db.session.query(LopHoc.id).all()
-    y=random.choice(x)
+    x = db.session.query(LopHoc.id).all()
+    y = random.choice(x)
     y_int = int(y[0])
 
     return y_int
-
 
 
 def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, avatar):
     username = generate_username(ho_ten)
     password = str(hashlib.md5(username.encode('utf-8')).hexdigest())
 
-    hs = HocSinh(ho_ten=ho_ten,
+    hs = User(ho_ten=ho_ten,
               gioi_tinh=gioi_tinh,
               ngay_sinh=ngay_sinh,
               dia_chi=dia_chi,
@@ -60,19 +64,21 @@ def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, avatar):
     return hs.id
 
 
-# Add học sinh vào lớp
-def add_hs_to_lop(id_hs, id_lop):
-    hs_lop = HocSinhLopHoc(ma_hs=id_hs, ma_lop=id_lop)
-    db.session.add(hs_lop)
-    db.session.commit()
+# # Add học sinh vào lớp
+# def add_hs_to_lop(id_hs, id_lop):
+#     hs_lop = HocSinhLopHocKhoa(ma_hs=id_hs, ma_lop=id_lop)
+#     db.session.add(hs_lop)
+#     db.session.commit()
 
 
 def get_lophoc_by_khoi(ten_khoi):
     list_ten_lop = [lop.ten_lop for lop in LopHoc.query.filter(LopHoc.khoi == ten_khoi).all()]
     return list_ten_lop
 
+
 def get_khoi():
-    return list(Grade)
+    return list(Khoi)
+
 
 if __name__ == "__main__":
     with app.app_context():
