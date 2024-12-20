@@ -3,7 +3,10 @@ from flask_login import current_user, logout_user
 from app import db, app, dao, models
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from app.models import User, MonHoc, HocSinh, BangDiem, ChiTietDiem, BangDiemChiTietDiem, HocKy, HocSinhLopHoc, UserRole
+from app.models import (User, MonHoc, HocSinh, BangDiem,
+                        ChiTietDiem, BangDiemChiTietDiem,
+                        HocKy, HocSinhLopHoc, UserRole,
+                        LopHoc)
 from flask_admin import BaseView, expose
 
 admin = Admin(app, name='Student Manage System', template_mode='bootstrap4')
@@ -45,6 +48,7 @@ class UserView(AuthenticatedView):
 
 
 class MonHocView(AuthenticatedView):
+    can_create = True
     column_labels = {
         'ten_mon_hoc': 'Tên môn học'
     }
@@ -52,7 +56,8 @@ class MonHocView(AuthenticatedView):
 
 
 class BangDiemView(AuthenticatedView):
-    models.add_stu_to_score()
+    pass
+
 
 class ChiTietDiemView(AuthenticatedView):
     pass
@@ -75,8 +80,10 @@ class LogoutView(MyView):
 
 
 admin.add_view(UserView(User, db.session))
+admin.add_view(ModelView(LopHoc, db.session, name="Lớp học"))
 admin.add_view(MonHocView(MonHoc, db.session, name="Môn học"))
 admin.add_view(HocSinhView(HocSinh, db.session, name="Học sinh"))
 admin.add_view(BangDiemView(BangDiem, db.session, name="Bảng điểm"))
+admin.add_view(ModelView(HocKy, db.session, name="Học kỳ"))
 admin.add_view(HocSinhLopHocView(HocSinhLopHoc, db.session, name="Danh sách học sinh với lớp"))
 admin.add_view(LogoutView(name='Đăng xuất'))

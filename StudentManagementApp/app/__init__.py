@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from urllib.parse import quote
 from flask_login import LoginManager
 import cloudinary
-from sqlalchemy import Integer
 
 app = Flask(__name__)
 

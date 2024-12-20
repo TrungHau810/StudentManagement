@@ -1,8 +1,11 @@
 import hashlib
 import random
 import unidecode
+from flask import session
 from app import db, app
-from app.models import User, UserRole, Grade, MonHoc, HocSinh, BangDiem, ChiTietDiem, HocSinhLopHoc, LopHoc
+from app.models import (User, UserRole, Grade,
+                        MonHoc, HocSinh, BangDiem, ChiTietDiem,
+                        HocSinhLopHoc, LopHoc, HocKy)
 
 
 def auth_user(username, password, role=None):
@@ -33,12 +36,11 @@ def generate_username(hoten):
 
 
 def random_id_lop():
-    x= db.session.query(LopHoc.id).all()
-    y=random.choice(x)
+    x = db.session.query(LopHoc.id).all()
+    y = random.choice(x)
     y_int = int(y[0])
 
     return y_int
-
 
 
 def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, avatar):
@@ -46,14 +48,14 @@ def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, avatar):
     password = str(hashlib.md5(username.encode('utf-8')).hexdigest())
 
     hs = HocSinh(ho_ten=ho_ten,
-              gioi_tinh=gioi_tinh,
-              ngay_sinh=ngay_sinh,
-              dia_chi=dia_chi,
-              email=email,
-              avatar=avatar,
-              username=username,
-              password=password,
-              user_role=UserRole.STUDENT)
+                 gioi_tinh=gioi_tinh,
+                 ngay_sinh=ngay_sinh,
+                 dia_chi=dia_chi,
+                 email=email,
+                 avatar=avatar,
+                 username=username,
+                 password=password,
+                 user_role=UserRole.STUDENT)
 
     db.session.add(hs)
     db.session.commit()
@@ -71,10 +73,24 @@ def get_lophoc_by_khoi(ten_khoi):
     list_ten_lop = [lop.ten_lop for lop in LopHoc.query.filter(LopHoc.khoi == ten_khoi).all()]
     return list_ten_lop
 
+
+def get_nien_khoa():
+    nam_hoc_values = db.session.query( HocKy.id, HocKy.nam_hoc).all()
+    # id_nam_hoc = db.session.query(HocKy.id).all()
+    # a = [item[0] for item in nam_hoc_values]
+    print(nam_hoc_values)
+    print(type(nam_hoc_values))
+    return nam_hoc_values
+
+
 def get_khoi():
     return list(Grade)
 
+
+def get_hs_by_lop():
+    pass
+
+
 if __name__ == "__main__":
     with app.app_context():
-        print(get_lophoc_by_khoi("Grade_10"))
-        print(type(get_lophoc_by_khoi("Grade_10")))
+        get_nien_khoa()

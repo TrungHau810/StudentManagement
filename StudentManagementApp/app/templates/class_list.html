@@ -7,30 +7,38 @@
     <form class="mt-2">
         <div class="row justify-content-center align-items-center">
             <div class="col-md-3">
+                <label for="nienKhoa">Niên khoá:</label>
+                <select class="form-select" id="nienKhoa">
+                    <option value="">-- Niên khoá --</option>
+                    {% for id, nk in nien_khoa %}
+                    <option value="{{ id }}">{{ nk }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label for="khoi">Khối:</label>
-                <select class="form-select" id="khoi">
+                <select class="form-select" id="khoi" onchange="addLopToDropdown()">
                     <option value="">-- Chọn khối --</option>
                     {% for k in khoi %}
-                    <option value="{{ k.name }}">Khối {{ k.value }}</option>
+                    <option value="{{ k.value }}">Khối {{ k.value }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
                 <label for="lop">Lớp:</label>
-                <select class="form-select" id="lop">
+                <select class="form-select" id="lop" onchange="changeTitleTable()">
                     <option value="">-- Chọn lớp --</option>
-                    {% for lop in danh_sach_lop %}
-                    <option value="{{ lop.id }}">{{ lop.ten_lop }}</option>
-                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
                 <label for="siso">Sĩ số:</label>
-                <input type="number" class="form-control" id="siso">
+                <input type="text" class="form-control" id="siso">
             </div>
         </div>
     </form>
-    <h3 class="text-center">Danh sách học sinh lớp 10A1</h3>
+    <div id="title" class="mt-3">
+
+    </div>
     <table class="table">
         <thead>
         <tr>

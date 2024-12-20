@@ -80,13 +80,22 @@ def scores_input_view():
 
 @app.route("/create-class-list")
 def class_list_view():
+    nien_khoa = dao.get_nien_khoa()
     khoi = dao.get_khoi()
-    return render_template('class_list.html', khoi=khoi)
+    return render_template('class_list.html', khoi=khoi, nien_khoa=nien_khoa)
 
 
-@app.route('/api/get_lop_by_khoi')
+@app.route('/api/get_lop_by_khoi', methods=['POST'])
 def get_lop_by_khoi():
-    pass
+    data = request.json
+    khoi_input = data.get('khoi_value')
+    khoi = str('Grade_' + khoi_input)
+    print(khoi)
+    ds_lop = dao.get_lophoc_by_khoi(khoi)
+    print(ds_lop)
+    formatted_lop = [{"ten_lop": lop} for lop in ds_lop]
+    print(formatted_lop)
+    return jsonify(formatted_lop), 200
 
 
 if __name__ == "__main__":
