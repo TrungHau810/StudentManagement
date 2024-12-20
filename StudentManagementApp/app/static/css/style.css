@@ -1,4 +1,32 @@
-body {
-    /*background-color: bs-body-color;*/
+* {
+    margin-top: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    overflow: auto; /* Cho phép cuộn trang */
+}
+
+.homepage {
+    background-image: url('/static/images/qlhocsinh.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 100%; /* Chiều cao của trang */
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Nội dung trên ảnh nền */
+.content-container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
     color: white;
+    padding-top: 10%;
 }
