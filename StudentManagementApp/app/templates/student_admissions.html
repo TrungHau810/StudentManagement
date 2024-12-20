@@ -3,6 +3,14 @@
 {% block content %}
 <div class="bg-subtle">
     <h1 class="text-center mb-1 mt-3">Tiếp nhận học sinh mới</h1>
+    <div class="d-flex justify-content-center align-items-center mt-4">
+        {% if message %}
+        <div class="alert alert-info text-center" role="alert" style="width: 50%;">
+            {{ message }}
+        </div>
+        {% endif %}
+    </div>
+
 
     <form method="post" action="/addstudents">
         <div class="d-flex justify-content-center align-items-center min-vh-100">
@@ -61,7 +69,8 @@
                     <div class="d-flex justify-content-between">
 
                         <div class="col-6 ps-2">
-                            <button type="button"  class="btn btn-danger  w-100" onclick="resetForm() w-100">Nhập lại</button>
+                            <button type="button" class="btn btn-danger  w-100" onclick="resetForm() w-100">Nhập lại
+                            </button>
                         </div>
                         <div class="col-6 pe-2 ms-3">
                             <button type="submit" class="btn btn-primary w-100">Thêm Học Sinh</button>

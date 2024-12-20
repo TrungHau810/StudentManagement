@@ -53,17 +53,31 @@ def add_student():
         dia_chi = request.form.get('dia_chi')
         email = request.form.get('email')
         avatar = request.files.get('avatar')
-        if avatar:
-            res = cloudinary.uploader.upload(avatar)
-            avatar = res.get('secure_url')
-        hs = dao.add_stu(ho_ten=ho_ten,
-                         gioi_tinh=gioi_tinh,
-                         ngay_sinh=ngay_sinh,
-                         dia_chi=dia_chi,
-                         email=email,
-                         avatar=avatar)
 
-        dao.add_hs_to_lop(id_hs=hs, id_lop=dao.random_id_lop())
+
+        current_date = datetime.now()
+
+        #tính tuổi
+        age_now = current_date.year - ngay_sinh.year - ((current_date.month, current_date.day) < (ngay_sinh.month, ngay_sinh.day))
+
+        if age_now >= 15:
+            if avatar:
+                res = cloudinary.uploader.upload(avatar)
+                avatar = res.get('secure_url')
+            hs = dao.add_stu(ho_ten=ho_ten,
+                             gioi_tinh=gioi_tinh,
+                             ngay_sinh=ngay_sinh,
+                             dia_chi=dia_chi,
+                             email=email,
+                             avatar=avatar)
+
+            dao.add_hs_to_lop(id_hs=hs, id_lop=dao.random_id_lop())
+            message = "Thêm học sinh thành công"
+        else:
+            message = "Thêm học sinh thất bại, học sinh phải đủ 15 tuổi"
+
+        return render_template('student_admissions.html', message = message)
+
     return render_template('student_admissions.html')
 
 
