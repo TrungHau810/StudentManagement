@@ -2,31 +2,31 @@
   {
     "ten_lop": "10A1",
     "si_so": 40,
-    "khoi": "Grade_10"
+    "khoi": "KHOI_10"
   },
   {
     "ten_lop": "10C2",
     "si_so": 38,
-    "khoi": "Grade_10"
+    "khoi": "KHOI_10"
   },
   {
     "ten_lop": "11A1",
     "si_so": 35,
-    "khoi": "Grade_11"
+    "khoi": "KHOI_11"
   },
   {
     "ten_lop": "11D1",
     "si_so": 39,
-    "khoi": "Grade_11"
+    "khoi": "KHOI_11"
   },
   {
     "ten_lop": "12A1",
     "si_so": 40,
-    "khoi": "Grade_12"
+    "khoi": "KHOI_12"
   },
   {
     "ten_lop": "12A10",
     "si_so": 35,
-    "khoi": "Grade_12"
+    "khoi": "KHOI_12"
   }
 ]

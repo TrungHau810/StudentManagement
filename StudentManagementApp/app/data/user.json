@@ -5,7 +5,8 @@
     "password": "12345",
     "ngay_sinh": "2004-10-08",
     "dia_chi": "TP.HCM",
-    "gioi_tinh": 0,
+    "gioi_tinh": "NAM",
+    "so_dien_thoai": "0978639729",
     "email": "tthau@ou.edu.vn",
     "avatar": "https://res.cloudinary.com/tthau2004/image/upload/avatar_female_eomcmm.png",
     "user_role": "ADMIN"
@@ -16,7 +17,8 @@
     "password": "abc123",
     "ngay_sinh": "2001-01-05",
     "dia_chi": "TP.HCM",
-    "gioi_tinh": 0,
+    "gioi_tinh": "NAM",
+    "so_dien_thoai": "09786976209",
     "email": "nva@ou.edu.vn",
     "avatar": "https://res.cloudinary.com/tthau2004/image/upload/avatar_female_eomcmm.png",
     "user_role": "TEACHER"
@@ -27,7 +29,8 @@
     "password": "ttb123",
     "ngay_sinh": "2004-10-08",
     "dia_chi": "Thủ Đức",
-    "gioi_tinh": 1,
+    "gioi_tinh": "NU",
+    "so_dien_thoai": "0902859729",
     "email": "2251050029hau@ou.edu.vn",
     "avatar": "",
     "avatar": "",
@@ -39,7 +42,8 @@
     "password": "2323",
     "ngay_sinh": "2003-03-02",
     "dia_chi": "Nhà Bè",
-    "gioi_tinh": 0,
+    "gioi_tinh": "NAM",
+    "so_dien_thoai": "0978853129",
     "email": "2253012087sang@ou.edu.vn",
     "avatar": "https://res.cloudinary.com/tthau2004/image/upload/avatar_female_eomcmm.png",
     "user_role": "STAFF"
@@ -50,10 +54,47 @@
     "password": "pvb123",
     "ngay_sinh": "2003-10-04",
     "dia_chi": "Quận 7",
-    "gioi_tinh": 0,
+    "gioi_tinh": "NAM",
+    "so_dien_thoai": "0977339729",
     "email": "pvb@ou.edu.vn",
     "avatar": "https://res.cloudinary.com/tthau2004/image/upload/avatar_female_eomcmm.png",
     "user_role": "TEACHER"
+  },
+  {
+    "ho_ten": "Trần Văn Hậu",
+    "username": "tvh0810",
+    "password": "tvh0810",
+    "gioi_tinh": "NAM",
+    "so_dien_thoai": "0977532729",
+    "ngay_sinh": "2004-10-08",
+    "dia_chi": "Bến Tre",
+    "email": "tvh@gmail.com",
+    "avatar": "https://res.cloudinary.com/tthau2004/image/upload/avatar_female_eomcmm.png",
+    "user_role": "STUDENT"
+  },
+  {
+    "ho_ten": "Nguyễn Văn Ba",
+    "username": "nvb1005",
+    "password": "nvb1005",
+    "gioi_tinh": "NAM",
+    "ngay_sinh": "2004-05-10",
+    "dia_chi": "Bình Thuận",
+    "so_dien_thoai": "0977309729",
+    "email": "nvb@gmail.com",
+    "avatar": "https://res.cloudinary.com/tthau2004/image/upload/avatar_female_eomcmm.png",
+    "user_role": "STUDENT"
+  },
+  {
+    "ho_ten": "Phạm Thu Phương",
+    "username": "ptp1212",
+    "password": "ptp1212",
+    "gioi_tinh": "NU",
+    "ngay_sinh": "2004-12-12",
+    "dia_chi": "TP.Hồ Chí Minh",
+    "so_dien_thoai": "0977003729",
+    "email": "ptp@gmail.com",
+    "avatar": "https://res.cloudinary.com/tthau2004/image/upload/avatar_female_eomcmm.png",
+    "user_role": "STUDENT"
   }
 ]
 
