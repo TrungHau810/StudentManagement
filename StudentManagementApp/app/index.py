@@ -1,11 +1,16 @@
 import cloudinary.uploader
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from sqlalchemy.dialects.postgresql import hstore
+
 import dao
 from app import app, login, db
 from flask_login import login_user, logout_user, login_required
+
+from app.dao import get_id_khoa_by_ten_khoa, get_id_lop_by_ten_lop, get_id_lopkhoa_by_id_lop_khoa, \
+    get_list_id_hs_by_id_lopkhoa, get_hs_info_by_id_hs, get_all_lop
 from app.models import UserRole, Khoi, LopHoc
 from datetime import datetime
-from app.models import (User, GiaoVien, UserRole,
+from app.models import (User, HocSinh, UserRole,
                         GioiTinh, MonHoc, LopHoc,
                         Khoa, Diem, KetQuaHocTap,
                         LopHocKhoa, HocSinhLopHocKhoa,
@@ -60,11 +65,11 @@ def add_student():
         email = request.form.get('email')
         avatar = request.files.get('avatar')
 
-
         current_date = datetime.now()
 
-        #tính tuổi
-        age_now = current_date.year - ngay_sinh.year - ((current_date.month, current_date.day) < (ngay_sinh.month, ngay_sinh.day))
+        # tính tuổi
+        age_now = current_date.year - ngay_sinh.year - (
+                (current_date.month, current_date.day) < (ngay_sinh.month, ngay_sinh.day))
 
         if age_now >= 15:
             if avatar:
@@ -82,7 +87,7 @@ def add_student():
         else:
             message = "Thêm học sinh thất bại, học sinh phải đủ 15 tuổi"
 
-        return render_template('student_admissions.html', message = message)
+        return render_template('student_admissions.html', message=message)
 
     return render_template('student_admissions.html')
 
@@ -101,12 +106,80 @@ def scores_input_view():
 @app.route("/create-class-list")
 def class_list_view():
     khoi = dao.get_khoi()
-    return render_template('class_list.html', khoi=khoi)
+    nam_hoc = dao.get_nam_hoc()
+    return render_template('class_list.html', nam_hoc=nam_hoc, khoi=khoi)
 
 
-@app.route('/api/get_lop_by_khoi')
-def get_lop_by_khoi():
-    pass
+@app.route('/api/get_lop_by_khoi', methods=['post'])
+def get_lop_by_khoi_khoa():
+    data = request.get_json()
+    ten_khoi = data.get('ten_khoi')
+    nam_hoc = data.get('nam_hoc')
+
+    ds_lop = db.session.query(LopHoc.id, LopHoc.ten_lop) \
+        .join(LopHocKhoa, LopHoc.id == LopHocKhoa.id_lop) \
+        .join(Khoa, LopHocKhoa.id_khoa == Khoa.id) \
+        .filter(LopHoc.khoi == ten_khoi, Khoa.ten_khoa == nam_hoc) \
+        .distinct()
+
+    lop_list = [{"id": lop.id, "ten_lop": lop.ten_lop} for lop in ds_lop]
+
+    return jsonify(lop_list)
+
+
+@app.route('/api/get_hocsinh', methods=['POST'])
+def get_hocsinh():
+    data = request.get_json()
+    ten_khoi = data.get('ten_khoi')
+    nam_hoc = data.get('nam_hoc')
+    ten_lop = data.get('ten_lop')
+
+    id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
+    id_lop = get_id_lop_by_ten_lop(ten_lop)
+    id_lop_khoa = get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop)
+    list_id_hs = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
+    return jsonify({
+        'hs': get_hs_info_by_id_hs(list_id_hs),
+        'lop': get_all_lop()
+    })
+
+
+# @app.route("/api/change-lop-hs", metheds=['POST'])
+# def change_lop_hocsinh():
+#     data = request.get_json()
+#     id_lop = data.get('id_lop')
+#     nam_hoc = data.get('nam_hoc')
+#
+#     id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
+#     id_khoalop = get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop)
+#     pass
+
+
+
+@app.route('/api/add_hocsinh_to_lop', methods=['POST'])
+def add_hocsinh():
+    data = request.get_json()
+    ten_khoi = data.get('ten_khoi')
+    nam_hoc = data.get('nam_hoc')
+    ten_lop = data.get('ten_lop')
+    id_hocsinh = data.get('list')
+    print(id_hocsinh)
+    lop_list = LopHoc.query.filter_by(ten_lop=ten_lop).all()
+    if lop_list:
+        lop_id = lop_list[0].id
+
+    khoa = Khoa.query.filter_by(ten_khoa=nam_hoc).first()
+    if khoa:
+        khoa_id = khoa.id
+
+    id_lop_khoa = LopHocKhoa.query.filter_by(id_lop=lop_id, id_khoa=khoa_id).first()
+    id_lop_khoa = id_lop_khoa.id
+
+    for id in id_hocsinh:
+        hs = HocSinhLopHocKhoa(id_hs=id, id_lop_khoa=id_lop_khoa)
+        db.session.add(hs)
+    db.session.commit()
+    return jsonify({"message": "Thêm học sinh vào lớp thành công"})
 
 
 if __name__ == "__main__":

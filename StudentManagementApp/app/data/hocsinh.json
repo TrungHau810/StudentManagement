@@ -1,0 +1,26 @@
+[
+  {
+    "ho_ten": "Trần Văn Hậu",
+    "gioi_tinh": "NAM",
+    "so_dien_thoai": "0977532729",
+    "ngay_sinh": "2004-10-08",
+    "dia_chi": "Bến Tre",
+    "email": "tvh@gmail.com"
+  },
+  {
+    "ho_ten": "Nguyễn Văn Ba",
+    "gioi_tinh": "NAM",
+    "ngay_sinh": "2004-05-10",
+    "dia_chi": "Bình Thuận",
+    "so_dien_thoai": "0977309729",
+    "email": "nvb@gmail.com"
+  },
+  {
+    "ho_ten": "Phạm Thu Phương",
+    "gioi_tinh": "NU",
+    "ngay_sinh": "2004-12-12",
+    "dia_chi": "TP.Hồ Chí Minh",
+    "so_dien_thoai": "0977003729",
+    "email": "ptp@gmail.com"
+  }
+]

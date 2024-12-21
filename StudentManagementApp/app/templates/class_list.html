@@ -7,17 +7,26 @@
     <form class="mt-2">
         <div class="row justify-content-center align-items-center">
             <div class="col-md-3">
+                <label for="namHoc">Năm học:</label>
+                <select class="form-select" id="namHoc">
+                    <option value="">-- Chọn năm --</option>
+                    {% for nh in nam_hoc %}
+                    <option value="{{ nh }}">{{ nh }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label for="khoi">Khối:</label>
-                <select class="form-select" id="khoi">
+                <select class="form-select" id="khoi" onchange="addLopToDropdown()">
                     <option value="">-- Chọn khối --</option>
                     {% for k in khoi %}
-                    <option value="{{ k.name }}">Khối {{ k.value }}</option>
+                    <option value="{{ k.name }}">{{ k.value }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
                 <label for="lop">Lớp:</label>
-                <select class="form-select" id="lop">
+                <select class="form-select" id="lop" onchange="changeTitleTable(), loadHocsinh()">
                     <option value="">-- Chọn lớp --</option>
                     {% for lop in danh_sach_lop %}
                     <option value="{{ lop.id }}">{{ lop.ten_lop }}</option>
@@ -30,31 +39,28 @@
             </div>
         </div>
     </form>
-    <h3 class="text-center">Danh sách học sinh lớp 10A1</h3>
-    <table class="table">
+    <div id="title">
+
+    </div>
+    <table class="table table-striped" id="hocsinh_table">
         <thead>
         <tr>
             <th>STT</th>
-            <th>Họ tên</th>
+            <th>Họ Tên</th>
             <th>Giới tính</th>
-            <th>Ngày sinh</th>
+            <th>Năm sinh</th>
             <th>Địa chỉ</th>
+            <th></th>
         </tr>
         </thead>
-        <tbody>
-        <tr>
-            <td>1</td>
-            <td>Phạm Chí Hào</td>
-            <td>Nam</td>
-            <td>14/04/2004</td>
-            <td>An Giang</td>
-        </tr>
+        <tbody id="hocsinh_body">
+        <!-- Dữ liệu học sinh sẽ được đổ vào đây -->
         </tbody>
     </table>
 
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
         <button type="button" class="btn btn-primary btn-danger me-md-2">Hủy bỏ</button>
-        <button type="button" class="btn btn-success">Xác nhận</button>
+        <button type="button" id="submit-button" class="btn btn-success" onclick="addHocSinhToLop()">Xác nhận</button>
     </div>
 </div>
 <a href="{{ url_for('index') }}">Quay lại trang chủ</a>

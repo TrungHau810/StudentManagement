@@ -1,0 +1,14 @@
+[
+  {
+    "ten_quy_dinh": "Độ tuổi tối đa",
+    "gia_tri": 18
+  },
+  {
+    "ten_quy_dinh": "Độ tuổi tối thiểu",
+    "gia_tri": 15
+  },
+  {
+    "ten_quy_dinh": "Sỉ số lớp tối đa",
+    "gia_tri": 40
+  }
+]

@@ -3,7 +3,7 @@ from flask_login import current_user, logout_user
 from app import db, app, dao, models
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from app.models import (User, GiaoVien, UserRole,
+from app.models import (User, HocSinh, UserRole,
                         GioiTinh, MonHoc, LopHoc,
                         Khoa, Diem, KetQuaHocTap,
                         LopHocKhoa, HocSinhLopHocKhoa,
@@ -60,6 +60,7 @@ class KetQuaHocTapView(AuthenticatedView):
     pass
     # models.add_stu_to_score()
 
+
 class ChiTietDiemView(AuthenticatedView):
     pass
 
@@ -82,6 +83,9 @@ class LogoutView(MyView):
 
 admin.add_view(UserView(User, db.session))
 admin.add_view(MonHocView(MonHoc, db.session, name="Môn học"))
+admin.add_view(ModelView(LopHoc, db.session, name="Lớp học"))
+admin.add_view(ModelView(Khoa, db.session, name="Năm học"))
+admin.add_view(ModelView(LopHocKhoa, db.session, name="Lớp-Năm học"))
 # admin.add_view(HocSinhView(User, db.session, name="Học sinh"))
 admin.add_view(KetQuaHocTapView(KetQuaHocTap, db.session, name="Bảng điểm"))
 admin.add_view(HocSinhLopHocView(HocSinhLopHocKhoa, db.session, name="Danh sách học sinh với lớp"))

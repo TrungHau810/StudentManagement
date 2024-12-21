@@ -1,4 +1,5 @@
 import json
+import random
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime
@@ -12,7 +13,6 @@ class UserRole(RoleEnum):
     ADMIN = 1
     TEACHER = 2
     STAFF = 3
-    STUDENT = 4
 
 
 class Khoi(RoleEnum):
@@ -41,12 +41,6 @@ class User(db.Model, UserMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
-    ho_ten = Column(String(255), nullable=False)
-    gioi_tinh = Column(Enum(GioiTinh), nullable=False)
-    ngay_sinh = Column(DateTime, nullable=False)
-    dia_chi = Column(String(255), nullable=False)
-    so_dien_thoai = Column(String(15), nullable=False)
-    email = Column(String(100), nullable=False)
     avatar = Column(String(255), nullable=True)
     user_role = Column(Enum(UserRole))
 
@@ -57,9 +51,14 @@ class User(db.Model, UserMixin):
         return self.user_role
 
 
-class GiaoVien(User):
-    id = Column(Integer, ForeignKey('user.id'), primary_key=True)
-    he_so_luong = Column(Float, default=1.5)
+class HocSinh(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ho_ten = Column(String(255), nullable=False)
+    gioi_tinh = Column(Enum(GioiTinh), nullable=False)
+    ngay_sinh = Column(DateTime, nullable=False)
+    dia_chi = Column(String(255), nullable=False)
+    so_dien_thoai = Column(String(15), nullable=False)
+    email = Column(String(100), nullable=False)
 
 
 class MonHoc(db.Model):
@@ -97,12 +96,10 @@ class Diem(db.Model):
     id_ket_qua_hoc_tap = relationship("KetQuaHocTap", backref='diem', lazy=True)
 
 
-# class TinNhan(db.Model):
-#     id = Column(Integer, primary_key=True, autoincrement=True)
-#     noi_dung = Column(String(255), nullable=False)
-#     thoi_gian = Column(DateTime, default=datetime.now())
-#     id_gv = Column(Integer, ForeignKey(User.id), nullable=True)
-#     id_hs = Column(Integer, ForeignKey(GiaoVien.id), nullable=True)
+class QuyDinh(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ten_quy_dinh = Column(String(255), nullable=False)
+    gia_tri = Column(Integer, nullable=False)
 
 
 class KetQuaHocTap(db.Model):
@@ -118,13 +115,13 @@ class LopHocKhoa(db.Model):
 
 
 class HocSinhLopHocKhoa(db.Model):
-    id_hs = Column(Integer, ForeignKey(User.id), primary_key=True)
+    id_hs = Column(Integer, ForeignKey(HocSinh.id), primary_key=True)
     id_lop_khoa = Column(Integer, ForeignKey(LopHocKhoa.id), primary_key=True)
 
 
 class GiaoVienMonHoc(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    id_giao_vien = Column(Integer, ForeignKey(GiaoVien.id))
+    id_giao_vien = Column(Integer, ForeignKey(User.id))
     id_mon_hoc = Column(Integer, ForeignKey(MonHoc.id))
 
 
@@ -141,30 +138,24 @@ def read_json_file(json_file):
 
 def load_user_to_db(json_file):
     data = read_json_file(json_file)
-
     for item in data:
-        if item['user_role'] == "TEACHER":
-            user = GiaoVien(ho_ten=item['ho_ten'],
-                            username=item['username'],
-                            password=str(hashlib.md5(item['password'].encode('utf-8')).hexdigest()),
-                            ngay_sinh=datetime.strptime(item['ngay_sinh'], "%Y-%m-%d"),
-                            dia_chi=item['dia_chi'],
-                            gioi_tinh=item['gioi_tinh'],
-                            so_dien_thoai=item['so_dien_thoai'],
-                            email=item['email'],
-                            avatar=item['avatar'],
-                            user_role=item['user_role'])
-        else:
-            user = User(ho_ten=item['ho_ten'],
-                        username=item['username'],
-                        password=str(hashlib.md5(item['password'].encode('utf-8')).hexdigest()),
-                        ngay_sinh=datetime.strptime(item['ngay_sinh'], "%Y-%m-%d"),
-                        dia_chi=item['dia_chi'],
-                        gioi_tinh=item['gioi_tinh'],
-                        so_dien_thoai=item['so_dien_thoai'],
-                        email=item['email'],
-                        avatar=item['avatar'],
-                        user_role=item['user_role'])
+        user = User(username=item['username'],
+                    password=str(hashlib.md5(item['password'].encode('utf-8')).hexdigest()),
+                    avatar=item['avatar'],
+                    user_role=item['user_role'])
+        db.session.add(user)
+    db.session.commit()
+
+
+def load_hs_to_db(json_file):
+    data = read_json_file(json_file)
+    for item in data:
+        user = HocSinh(ho_ten=item['ho_ten'],
+                       gioi_tinh=item['gioi_tinh'],
+                       ngay_sinh=datetime.strptime(item['ngay_sinh'], "%Y-%m-%d"),
+                       dia_chi=item['dia_chi'],
+                       so_dien_thoai=item['so_dien_thoai'],
+                       email=item['email'])
         db.session.add(user)
     db.session.commit()
 
@@ -199,114 +190,70 @@ def load_khoa_to_db(json_file):
     db.session.commit()
 
 
-def add_gv():
-    list = User.query.filter(User.user_role == UserRole.TEACHER).all()
-    for g in list:
-        gv = GiaoVien(id=g, he_so_luong=1.5)
-        db.session.add(gv)
+def load_quy_dinh_to_db(json_file):
+    data = read_json_file(json_file)
+    for item in data:
+        qd = QuyDinh(ten_quy_dinh=item['ten_quy_dinh'],
+                     gia_tri=item['gia_tri'])
+        db.session.add(qd)
     db.session.commit()
 
 
-# def add_lop_to_khoa():
-#     lop = LopHoc.query.all()
-#     pass
-
-# def add_hocsinh_to_lop():
-#     hs = User.query.filter_by(user_role=UserRole.STUDENT).all()
-#     lop = LopHoc.query.all()
-#     for s in hs:
-#         lophoc = random.choice(lop)
-#         hs_lop = H(ma_hs=s.id, ma_lop=lophoc.id)
-#         db.session.add(hs_lop)
-#     db.session.commit()
+def add_lop_to_khoa():
+    lop_ids = db.session.query(LopHoc.id).all()
+    khoa_ids = db.session.query(Khoa.id).filter(Khoa.hoc_ky == HocKy.HK1).all()
+    lop_ids = [lop[0] for lop in lop_ids]
+    khoa_ids = [khoa[0] for khoa in khoa_ids]
+    for lop_id in lop_ids:
+        for khoa_id in khoa_ids:
+            lop_hoc_khoa = LopHocKhoa(id_lop=lop_id, id_khoa=khoa_id)
+            db.session.add(lop_hoc_khoa)
+    db.session.commit()
 
 
-# def add_lop_to_monhoc():
-#     lop = LopHoc.query.all()
-#     monhoc = MonHoc.query.all()
-#
-#     for l in lop:
-#         for mh in monhoc:
-#             lop_mon = LopHocMonHoc(ma_lop=l.id, ma_mh=mh.ma_mon_hoc)
-#             db.session.add(lop_mon)
-#
-#     db.session.commit()
-#
-#
-# def add_teacher_to_monhoc():
-#     teachers = User.query.filter_by(user_role=UserRole.TEACHER).all()
-#     monhoc = MonHoc.query.all()
-#     for t in teachers:
-#         mh = random.choice(monhoc)
-#         teach = UserMonHoc(id_user=t.id, ma_mh=mh.ma_mon_hoc)
-#         db.session.add(teach)
-#     db.session.commit()
-#
-#
-# def add_lop_to_hocky():
-#     lop = LopHoc.query.all()
-#     hocky = HocKy.query.all()
-#     for l in lop:
-#         for hk in hocky:
-#             lop_hk = LopHocHocKy(id_lop=l.id, id_hoc_ky=hk.id)
-#             db.session.add(lop_hk)
-#     db.session.commit()
-#
-#
-# def add_stu_to_score():
-#     students = HocSinh.query.all()
-#     for stu in students:
-#         bd = BangDiem.query.filter_by(id_hoc_sinh=stu.id).first()
-#         if not bd:
-#             bang_diem = BangDiem(id_hoc_sinh=stu.id)
-#             db.session.add(bang_diem)
-#
-#     db.session.commit()
+
+def add_hocsinh_to_lopkhoa():
+    hoc_sinh_ids = db.session.query(HocSinh.id).all()
+    lop_khoa_ids = db.session.query(LopHocKhoa.id).all()
+
+    hoc_sinh_ids = [hs[0] for hs in hoc_sinh_ids]
+    lop_khoa_ids = [lk[0] for lk in lop_khoa_ids]
+
+    for hs_id in hoc_sinh_ids:
+        lop_khoa_id = random.choice(lop_khoa_ids)
+        hs_lop_khoa = HocSinhLopHocKhoa(id_hs=hs_id, id_lop_khoa=lop_khoa_id)
+        db.session.add(hs_lop_khoa)
+    db.session.commit()
 
 
-# def add_teacher_to_monhoc():
-#     teachers = User.query.filter_by(user_role=UserRole.TEACHER).all()
-#     monhoc = MonHoc.query.all()
-#     for t in teachers:
-#         mh = random.choice(monhoc)
-#         teach = UserMonHoc(id_user=t.id, ma_mh=mh.ma_mon_hoc)
-#         db.session.add(teach)
-#     db.session.commit()
-#
-#
-# def add_lop_to_hocky():
-#     lop = LopHoc.query.all()
-#     hocky = HocKy.query.all()
-#     for l in lop:
-#         for hk in hocky:
-#             lop_hk = LopHocHocKy(id_lop=l.id, id_hoc_ky=hk.ma_hk)
-#             db.session.add(lop_hk)
-#     db.session.commit()
-#
-#
-# def add_stu_to_score():
-#     students = HocSinh.query.all()
-#     for stu in students:
-#         bd = BangDiem.query.filter_by(id_hoc_sinh=stu.id).first()
-#         if not bd:
-#             bang_diem = BangDiem(id_hoc_sinh=stu.id)
-#             db.session.add(bang_diem)
-#
-#     db.session.commit()
+import random
+
+
+def add_hs_to_lopkhoa():
+    hoc_sinh_ids = db.session.query(HocSinh.id).all()
+    lopkhoa_ids = db.session.query(LopHocKhoa.id).all()
+
+    for hs in hoc_sinh_ids:
+        lk = random.choice(lopkhoa_ids)
+        h = HocSinhLopHocKhoa(id_hs=hs[0], id_lop_khoa=lk[0])
+        db.session.add(h)
+
+    db.session.commit()
 
 
 if __name__ == '__main__':
     with app.app_context():
         # Tạo models cho stu_manage_db
-        db.create_all()
-        # Nạp data các model vào db
-        load_user_to_db('data/user.json')
-        load_monhoc_to_db('data/monhoc.json')
-        load_lophoc_to_db('data/lophoc.json')
-        load_khoa_to_db('data/khoa.json')
+        # db.create_all()
+        # # Nạp data các model vào db
+        # load_user_to_db('data/user.json')
+        # load_monhoc_to_db('data/monhoc.json')
+        # load_lophoc_to_db('data/lophoc.json')
+        # load_khoa_to_db('data/khoa.json')
+        # load_quy_dinh_to_db('data/quydinh.json')
+        # add_lop_to_khoa()
+        # add_hocsinh_to_lopkhoa()
+        load_hs_to_db('data/hocsinh.json')
+        add_hs_to_lopkhoa()
 
-        # add_hocsinh_to_lop()
-        # add_lop_to_monhoc()
-        # add_teacher_to_monhoc()
-        # add_lop_to_hocky()
-        # load_loaidiem_to_db('data/loaidiem.json')
+        # test()

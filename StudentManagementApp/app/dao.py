@@ -2,7 +2,7 @@ import hashlib
 import random
 import unidecode
 from app import db, app
-from app.models import (User, GiaoVien, UserRole,
+from app.models import (User, HocSinh, UserRole,
                         GioiTinh, MonHoc, LopHoc,
                         Khoa, Diem, KetQuaHocTap,
                         LopHocKhoa, HocSinhLopHocKhoa,
@@ -22,21 +22,6 @@ def get_user_by_id(id):
     return User.query.get(id)
 
 
-def generate_username(hoten):
-    # Xóa dấu và chuyển thành chữ thường
-    hoten_khong_dau = unidecode.unidecode(hoten).lower()
-    # Tách họ và tên
-    parts = hoten_khong_dau.split()
-    # Lấy ký tự đầu của họ và tên đệm
-    initials = ''.join([part[0] for part in parts[:-1]])
-    # Lấy tên
-    ten = parts[-1]
-    # Ghép lại thành username
-    username = f"{initials}{ten}"
-
-    return username
-
-
 def random_id_lop():
     x = db.session.query(LopHoc.id).all()
     y = random.choice(x)
@@ -46,29 +31,17 @@ def random_id_lop():
 
 
 def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, avatar):
-    username = generate_username(ho_ten)
-    password = str(hashlib.md5(username.encode('utf-8')).hexdigest())
 
     hs = User(ho_ten=ho_ten,
               gioi_tinh=gioi_tinh,
               ngay_sinh=ngay_sinh,
               dia_chi=dia_chi,
               email=email,
-              avatar=avatar,
-              username=username,
-              password=password,
-              user_role=UserRole.STUDENT)
+              avatar=avatar)
 
     db.session.add(hs)
     db.session.commit()
     return hs.id
-
-
-# # Add học sinh vào lớp
-# def add_hs_to_lop(id_hs, id_lop):
-#     hs_lop = HocSinhLopHocKhoa(ma_hs=id_hs, ma_lop=id_lop)
-#     db.session.add(hs_lop)
-#     db.session.commit()
 
 
 def get_lophoc_by_khoi(ten_khoi):
@@ -76,11 +49,63 @@ def get_lophoc_by_khoi(ten_khoi):
     return list_ten_lop
 
 
+def get_nam_hoc():
+    ten_khoa = db.session.query(Khoa.ten_khoa).distinct().all()
+    khoa = [row[0] for row in ten_khoa]
+    print(khoa)
+    return khoa
+
+
 def get_khoi():
     return list(Khoi)
 
 
+def get_id_khoa_by_ten_khoa(ten_khoa):
+    id_khoa = db.session.query(Khoa.id).filter(Khoa.ten_khoa == ten_khoa).first()
+    return id_khoa[0]
+
+
+def get_id_lop_by_ten_lop(ten_lop):
+    id_lop = db.session.query(LopHoc.id).filter(LopHoc.ten_lop == ten_lop).all()
+    return id_lop[0][0]
+
+
+def get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop):
+    id_lop_khoa = LopHocKhoa.query.filter_by(id_khoa=id_khoa, id_lop=id_lop).first()
+    return id_lop_khoa.id
+
+
+def get_list_id_hs_by_id_lopkhoa(id_lopkhoa):
+    list_id_hs = HocSinhLopHocKhoa.query.filter(HocSinhLopHocKhoa.id_lop_khoa == id_lopkhoa).all()
+    return [item.id_hs for item in list_id_hs]
+
+
+def get_hs_info_by_id_hs(id_hs):
+    hocsinh_list = HocSinh.query.filter(User.id.in_(id_hs)).all()
+    hoc_sinh_info = [
+        {
+            "ho_ten": hs.ho_ten,
+            "gioi_tinh": hs.gioi_tinh.value,
+            "nam_sinh": hs.ngay_sinh.year,
+            "dia_chi": hs.dia_chi
+        }
+        for hs in hocsinh_list
+    ]
+    return hoc_sinh_info
+
+
+def get_all_lop():
+    lop_hoc_list = LopHoc.query.with_entities(LopHoc.id, LopHoc.ten_lop).all()
+    lophoc = [{
+        "id": l.id,
+        "ten_lop": l.ten_lop
+    }
+    for l in lop_hoc_list
+    ]
+    return lophoc
+
+
 if __name__ == "__main__":
     with app.app_context():
-        print(get_lophoc_by_khoi("Grade_10"))
-        print(type(get_lophoc_by_khoi("Grade_10")))
+        # get_nam_hoc()
+        print(get_all_lop())
