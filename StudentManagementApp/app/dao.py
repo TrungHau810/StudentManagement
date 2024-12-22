@@ -47,6 +47,7 @@ def get_lophoc_by_khoi(ten_khoi):
     return list_ten_lop
 
 
+
 def get_nam_hoc():
     ten_khoa = db.session.query(Khoa.ten_khoa).distinct().all()
     khoa = [row[0] for row in ten_khoa]
@@ -79,6 +80,13 @@ def get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop):
         id_lop_khoa = LopHocKhoa.query.filter_by(id_khoa=khoa, id_lop=id_lop).all()
         list_id_lop_khoa.extend([lop_khoa.id for lop_khoa in id_lop_khoa])
     return list_id_lop_khoa
+
+
+def get_id_lop_khoa (id_khoa, id_lop):
+    id_lopkhoa = LopHocKhoa.query.filter_by(id_khoa=id_khoa, id_lop=id_lop).all()
+    return int(id_lopkhoa[0].id)
+
+
 
 def get_list_id_hs_by_id_lopkhoa(id_lopkhoa):
     if isinstance(id_lopkhoa, int):  # Nếu chỉ có một ID lớp khoa
@@ -114,9 +122,42 @@ def get_all_lop():
     return lophoc
 
 
+def get_khoa_id(ten_nam, hoc_ky):
+    """
+    Lấy ID của khóa dựa vào tên năm và kỳ học.
+
+    :param ten_nam: Tên năm của khóa (ví dụ: "2024-2025")
+    :param hoc_ky: Giá trị Enum đại diện cho học kỳ (ví dụ: HocKy.HK1)
+    :return: ID của khóa hoặc None nếu không tìm thấy
+    """
+    try:
+        khoa = db.session.query(Khoa.id).filter(
+            Khoa.ten_khoa == ten_nam,
+            Khoa.hoc_ky == hoc_ky
+        ).first()
+
+        return khoa[0] if khoa else None
+    except Exception as e:
+        print(f"Lỗi khi lấy ID của khóa: {e}")
+        return None
 
 
 if __name__ == "__main__":
     with app.app_context():
-        # get_nam_hoc()
-        print(get_all_lop())
+        ten_nam = "2024-2025"
+        hoc_ky = "HK1"
+        id_lop = 1
+
+
+
+
+        khoa_id = get_khoa_id(ten_nam, hoc_ky)
+        print(khoa_id)
+        print(type(khoa_id))
+
+        id_lop_khoa= get_id_lop_khoa(khoa_id, id_lop)
+        print(type(id_lop_khoa))
+        print(f"id lop khoa:{id_lop_khoa}")
+
+        id_hocsinh = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
+        print(f"id hoc sinh: {id_hocsinh}")

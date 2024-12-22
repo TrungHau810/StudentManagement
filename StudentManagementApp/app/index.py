@@ -36,6 +36,7 @@ class ClassListForm(FlaskForm):
     lop = SelectField('Lớp', validators=[DataRequired()])
     submit = SubmitField('Xác nhận')
 
+
 # Form thêm học sinh vào lớp
 class AddStudentToClassForm(FlaskForm):
     submit = SubmitField('Thêm vào lớp')
@@ -164,6 +165,7 @@ def get_hocky():
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
 
+
 @app.route('/api/get_lop_by_namhoc_hocky', methods=['POST'])
 def get_lop():
     try:
@@ -184,37 +186,24 @@ def get_lop():
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
 
+
 @app.route('/api/get_students_and_subjects', methods=['POST'])
 def get_students_and_subjects():
     try:
         data = request.get_json()
         lop_id = data.get('lop_id')
+        nam_hoc = data.get("namHoc")
+        hoc_ky = data.get('hocKy')
 
-        # Lấy danh sách học sinh thuộc lớp đã chọn
-        students = (db.session.query(HocSinh, HocSinhLopHocKhoa.id_lop_khoa)
-                    .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)
-                    .join(LopHocKhoa, HocSinhLopHocKhoa.id_lop_khoa == LopHocKhoa.id)
-                    .filter(LopHocKhoa.id_lop == lop_id)
-                    .all())
+        id_khoa = dao.get_khoa_id(nam_hoc, hoc_ky)  # Correctly using dao.get_khoa_id
+        id_lop_khoa_list = get_id_lopkhoa_by_id_lop_khoa([id_khoa], lop_id)  # Use the corrected function
+        hs_id = get_list_id_hs_by_id_lopkhoa(id_lop_khoa_list[0]) # Get the first id_lop_khoa
+        hs_info = get_hs_info_by_id_hs(hs_id)  # Get student info
 
-        # Lấy danh sách môn học
-        subjects = (db.session.query(MonHoc)
-                    .all())
+        return jsonify(hs_info)  # Return the student info
 
-        return jsonify({
-            'students': [{
-                'id': hs.HocSinh.id,
-                'ma_hs': f'HS{hs.HocSinh.id:03d}',  # Định dạng mã học sinh
-                'ho_ten': hs.HocSinh.ho_ten
-            } for hs, id_lop_khoa in students],
-            'subjects': [{
-                'id': mh.id,
-                'ten': mh.ten_mon_hoc
-            } for mh in subjects]
-        })
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
-
 @app.route('/api/save_scores', methods=['POST'])
 def save_scores():
     try:
@@ -236,6 +225,7 @@ def save_scores():
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
 
+
 @login.user_loader
 def load_user(user_id):
     return dao.get_user_by_id(user_id)
@@ -246,6 +236,8 @@ def load_user(user_id):
 def scores_input_view():
 
     return render_template('scores-input.html')
+
+
 @app.route('/api/get_hocsinh', methods=['POST'])
 def get_hocsinh_1():
     data = request.get_json()
@@ -310,14 +302,13 @@ def get_hocsinh_not_in_class():
                         .outerjoin(Khoa, LopHocKhoa.id_khoa == Khoa.id)
                         .filter(
                             or_(
-                                HocSinhLopHocKhoa.id_lop_khoa == None,  # Chưa được phân vào lớp nào
+                                HocSinhLopHocKhoa.id_lop_khoa == None,
                                 and_(
-                                    Khoa.id == khoa_id,  # Thuộc năm học đã chọn
-                                    LopHoc.khoi == khoi,  # Thuộc khối đã chọn
-                                    LopHoc.id != lop_id  # Nhưng không thuộc lớp đã chọn
+                                    Khoa.id == khoa_id,
+                                    LopHoc.khoi == khoi,
+                                    LopHoc.id != lop_id
                                 )
                             ),
-                            # Lọc học sinh đủ tuổi (>= 15 và <= 18)
                             HocSinh.ngay_sinh >= datetime.strptime(f"{int(nam_hoc.split('-')[0]) - 18}-01-01", "%Y-%m-%d"),
                             HocSinh.ngay_sinh <= datetime.strptime(f"{int(nam_hoc.split('-')[0]) - 15}-12-31", "%Y-%m-%d")
                         )
@@ -325,7 +316,7 @@ def get_hocsinh_not_in_class():
 
         print(f"hocsinh_list: {hocsinh_list}")
 
-        # 3. Tạo danh sách thông tin học sinh để trả về
+
         hoc_sinh_info = [
             {
                 "id": hs.id,
@@ -333,7 +324,7 @@ def get_hocsinh_not_in_class():
                 "gioi_tinh": hs.gioi_tinh.value,
                 "nam_sinh": hs.ngay_sinh.year,
                 "dia_chi": hs.dia_chi,
-                "selected": False  # Mặc định là chưa được chọn
+                "selected": False
             }
             for hs in hocsinh_list
         ]
@@ -342,7 +333,7 @@ def get_hocsinh_not_in_class():
 
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify([]), 500  # Trả về danh sách rỗng và mã lỗi 500 nếu có lỗi
+        return jsonify([]), 500
 @app.route('/api/get_hocsinh', methods=['POST'])
 def get_hocsinh():
     data = request.get_json()
@@ -369,7 +360,6 @@ def get_hocsinh():
 #     id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
 #     id_khoalop = get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop)
 #     pass
-
 
 
 # @app.route('/api/add_hocsinh_to_lop', methods=['POST'])
@@ -436,6 +426,8 @@ def add_hocsinh_to_lop():
     except Exception as e:
         print(str(e))
         return jsonify({'message': 'Có lỗi xảy ra'}), 500
+
+
 
 
 if __name__ == "__main__":
