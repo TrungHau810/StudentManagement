@@ -109,34 +109,28 @@ class KetQuaHocTap(db.Model):
     id_mon_hoc = Column(Integer, ForeignKey(MonHoc.id), primary_key=True)
     id_diem = Column(Integer, ForeignKey(Diem.id), nullable=False)
 
-
 class LopHocKhoa(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     id_lop = Column(Integer, ForeignKey(LopHoc.id), nullable=False)
     id_khoa = Column(Integer, ForeignKey(Khoa.id), nullable=False)
 
-
 class HocSinhLopHocKhoa(db.Model):
     id_hs = Column(Integer, ForeignKey(HocSinh.id), primary_key=True)
     id_lop_khoa = Column(Integer, ForeignKey(LopHocKhoa.id), primary_key=True)
-
 
 class GiaoVienMonHoc(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     id_giao_vien = Column(Integer, ForeignKey(User.id))
     id_mon_hoc = Column(Integer, ForeignKey(MonHoc.id))
 
-
 class GiaoVienMonHocLopHocKhoa(db.Model):
     id_gv_mh = Column(Integer, ForeignKey(GiaoVienMonHoc.id), primary_key=True)
     id_lop_khoa = Column(Integer, ForeignKey(LopHocKhoa.id), primary_key=True)
-
 
 # Open file json
 def read_json_file(json_file):
     with open(json_file, encoding='utf-8') as file:
         return json.load(file)
-
 
 def load_user_to_db(json_file):
     data = read_json_file(json_file)
@@ -147,7 +141,6 @@ def load_user_to_db(json_file):
                     user_role=item['user_role'])
         db.session.add(user)
     db.session.commit()
-
 
 def load_hs_to_db(json_file):
     data = read_json_file(json_file)
@@ -161,7 +154,6 @@ def load_hs_to_db(json_file):
         db.session.add(user)
     db.session.commit()
 
-
 def load_monhoc_to_db(json_file):
     data = read_json_file(json_file)
 
@@ -169,7 +161,6 @@ def load_monhoc_to_db(json_file):
         mh = MonHoc(ten_mon_hoc=item['ten_mon_hoc'])
         db.session.add(mh)
     db.session.commit()
-
 
 def load_lophoc_to_db(json_file):
     data = read_json_file(json_file)
@@ -181,7 +172,6 @@ def load_lophoc_to_db(json_file):
         db.session.add(lop)
     db.session.commit()
 
-
 def load_khoa_to_db(json_file):
     data = read_json_file(json_file)
 
@@ -191,7 +181,6 @@ def load_khoa_to_db(json_file):
         db.session.add(khoa)
     db.session.commit()
 
-
 def load_quy_dinh_to_db(json_file):
     data = read_json_file(json_file)
     for item in data:
@@ -199,7 +188,6 @@ def load_quy_dinh_to_db(json_file):
                      gia_tri=item['gia_tri'])
         db.session.add(qd)
     db.session.commit()
-
 
 def add_lop_to_khoa():
     lop_ids = db.session.query(LopHoc.id).all()
@@ -211,8 +199,6 @@ def add_lop_to_khoa():
             lop_hoc_khoa = LopHocKhoa(id_lop=lop_id, id_khoa=khoa_id)
             db.session.add(lop_hoc_khoa)
     db.session.commit()
-
-
 
 def add_hocsinh_to_lopkhoa():
     hoc_sinh_ids = db.session.query(HocSinh.id).all()
@@ -227,10 +213,6 @@ def add_hocsinh_to_lopkhoa():
         db.session.add(hs_lop_khoa)
     db.session.commit()
 
-
-import random
-
-
 def add_hs_to_lopkhoa():
     hoc_sinh_ids = db.session.query(HocSinh.id).all()
     lopkhoa_ids = db.session.query(LopHocKhoa.id).all()
@@ -242,20 +224,30 @@ def add_hs_to_lopkhoa():
 
     db.session.commit()
 
+def add_gv_to_mon():
+    list_id_mon = db.session.query(MonHoc.id).all()
+    list_id_gv = db.session.query(User.id).filter(User.user_role == UserRole.TEACHER).all()
+    list_id_gv = [gv.id for gv in list_id_gv]
+    list_id_mon = [mh.id for mh in list_id_mon]
+    for gv in list_id_gv:
+        id_mh = random.choice(list_id_mon)
+        gv_mh = GiaoVienMonHoc(id_giao_vien=gv, id_mon_hoc=id_mh)
+        db.session.add(gv_mh)
+    db.session.commit()
 
 if __name__ == '__main__':
     with app.app_context():
         # Tạo models cho stu_manage_db
-        # db.create_all()
-        # # Nạp data các model vào db
-        # load_user_to_db('data/user.json')
-        # load_monhoc_to_db('data/monhoc.json')
-        # load_lophoc_to_db('data/lophoc.json')
-        # load_khoa_to_db('data/khoa.json')
-        # load_quy_dinh_to_db('data/quydinh.json')
-        # add_lop_to_khoa()
-        # add_hocsinh_to_lopkhoa()
+        db.create_all()
+        # Nạp data các model vào db
+        load_user_to_db('data/user.json')
+        load_monhoc_to_db('data/monhoc.json')
+        load_lophoc_to_db('data/lophoc.json')
+        load_khoa_to_db('data/khoa.json')
+        load_quy_dinh_to_db('data/quydinh.json')
         load_hs_to_db('data/hocsinh.json')
-        add_hs_to_lopkhoa()
+        add_lop_to_khoa()
 
-        # test()
+        add_hocsinh_to_lopkhoa()
+        add_hs_to_lopkhoa()
+     # test()

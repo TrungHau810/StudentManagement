@@ -299,6 +299,31 @@ def add_hocsinh():
     return jsonify({"message": "Thêm học sinh vào lớp thành công"})
 
 
+@app.route('/api/student-counts')
+def api_student_counts():
+    data = dao.get_students_count_per_class()
+    return jsonify(data)
+
+
+@app.route('/api/gender-ratio', methods=['GET'])
+def gender_ratio_api():
+    try:
+        classes = get_all_lop()  # Lấy tất cả các lớp
+        data = []
+        for cls in classes:
+            ratio = dao.get_gender_ratio_by_class(cls['id'])
+            data.append({
+                "ten_lop": cls['ten_lop'],
+                "nam": ratio['nam'],
+                "nu": ratio['nu'],
+                "tong": ratio['tong']
+            })
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 if __name__ == "__main__":
     with app.app_context():
         from app import admin

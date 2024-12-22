@@ -110,10 +110,54 @@ def get_all_lop():
     ]
     return lophoc
 
+def get_students_count_per_class():
+    results = (
+        db.session.query(
+            LopHoc.ten_lop,
+            db.func.count(HocSinhLopHocKhoa.id_hs).label('total_students')
+        )
+        .join(LopHocKhoa, LopHoc.id == LopHocKhoa.id_lop)
+        .join(HocSinhLopHocKhoa, LopHocKhoa.id == HocSinhLopHocKhoa.id_lop_khoa)
+        .group_by(LopHoc.ten_lop)
+        .all()
+    )
+
+    return [{"ten_lop": r.ten_lop, "total_students": r.total_students} for r in results]
+
+
+def get_gender_ratio_by_class(class_id):
+    results = (
+        db.session.query(
+            HocSinh.gioi_tinh,
+            db.func.count(HocSinh.id).label('count')
+        )
+        .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)
+        .join(LopHocKhoa, HocSinhLopHocKhoa.id_lop_khoa == LopHocKhoa.id)
+        .filter(LopHocKhoa.id_lop == class_id)
+        .group_by(HocSinh.gioi_tinh)
+        .all()
+    )
+
+    # Mặc định số lượng là 0 nếu không có dữ liệu
+    gender_counts = {gender.value: count for gender, count in results}
+    total_students = sum(gender_counts.values())
+
+    return {
+        "nam": gender_counts.get("Nam", 0),
+        "nu": gender_counts.get("Nữ", 0),
+        "tong": total_students
+    }
 
 
 
 if __name__ == "__main__":
     with app.app_context():
         # get_nam_hoc()
-        print(get_all_lop())
+        # print(get_all_lop())
+        student_counts = get_students_count_per_class()
+        for item in student_counts:
+            print(f"Lớp {item['ten_lop']}: {item['total_students']} học sinh")
+
+        # class_id = 1  # ID của lớp cần kiểm tra
+        # gender_ratio = get_gender_ratio_by_class(class_id)
+        # print(f"Lớp {class_id}: {gender_ratio['nam']} nam, {gender_ratio['nu']} nữ, tổng: {gender_ratio['tong']}")
