@@ -30,18 +30,16 @@ def random_id_lop():
     return y_int
 
 
-def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, avatar):
-
-    hs = User(ho_ten=ho_ten,
-              gioi_tinh=gioi_tinh,
-              ngay_sinh=ngay_sinh,
-              dia_chi=dia_chi,
-              email=email,
-              avatar=avatar)
+def add_stu(ho_ten, gioi_tinh, ngay_sinh, dia_chi, email, so_dien_thoai):
+    hs = HocSinh(ho_ten=ho_ten,
+                 gioi_tinh=gioi_tinh,
+                 ngay_sinh=ngay_sinh,
+                 dia_chi=dia_chi,
+                 so_dien_thoai=so_dien_thoai,
+                 email=email)
 
     db.session.add(hs)
     db.session.commit()
-    return hs.id
 
 
 def get_lophoc_by_khoi(ten_khoi):
@@ -61,8 +59,10 @@ def get_khoi():
 
 
 def get_id_khoa_by_ten_khoa(ten_khoa):
-    id_khoa = db.session.query(Khoa.id).filter(Khoa.ten_khoa == ten_khoa).first()
-    return id_khoa[0]
+    id_khoa = db.session.query(Khoa.id).filter(Khoa.ten_khoa == ten_khoa).all()
+    if id_khoa:
+        return [khoa.id for khoa in id_khoa]
+    return []
 
 
 def get_id_lop_by_ten_lop(ten_lop):
@@ -71,17 +71,22 @@ def get_id_lop_by_ten_lop(ten_lop):
 
 
 def get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop):
-    id_lop_khoa = LopHocKhoa.query.filter_by(id_khoa=id_khoa, id_lop=id_lop).first()
-    return id_lop_khoa.id
-
+    list_id_lop_khoa = []
+    for khoa in id_khoa:
+        id_lop_khoa = LopHocKhoa.query.filter_by(id_khoa=khoa, id_lop=id_lop).all()
+        list_id_lop_khoa.extend([lop_khoa.id for lop_khoa in id_lop_khoa])
+    return list_id_lop_khoa
 
 def get_list_id_hs_by_id_lopkhoa(id_lopkhoa):
-    list_id_hs = HocSinhLopHocKhoa.query.filter(HocSinhLopHocKhoa.id_lop_khoa == id_lopkhoa).all()
+    if isinstance(id_lopkhoa, int):  # Nếu chỉ có một ID lớp khoa
+        id_lopkhoa = [id_lopkhoa]
+
+    list_id_hs = HocSinhLopHocKhoa.query.filter(HocSinhLopHocKhoa.id_lop_khoa.in_(id_lopkhoa)).all()
+
     return [item.id_hs for item in list_id_hs]
 
-
 def get_hs_info_by_id_hs(id_hs):
-    hocsinh_list = HocSinh.query.filter(User.id.in_(id_hs)).all()
+    hocsinh_list = HocSinh.query.filter(HocSinh.id.in_(id_hs)).all()
     hoc_sinh_info = [
         {
             "ho_ten": hs.ho_ten,
@@ -94,6 +99,7 @@ def get_hs_info_by_id_hs(id_hs):
     return hoc_sinh_info
 
 
+
 def get_all_lop():
     lop_hoc_list = LopHoc.query.with_entities(LopHoc.id, LopHoc.ten_lop).all()
     lophoc = [{
@@ -103,6 +109,8 @@ def get_all_lop():
     for l in lop_hoc_list
     ]
     return lophoc
+
+
 
 
 if __name__ == "__main__":

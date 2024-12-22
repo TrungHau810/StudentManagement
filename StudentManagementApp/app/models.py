@@ -93,7 +93,9 @@ class Diem(db.Model):
     diem = Column(Float, default=0)
     lan = Column(Integer, default=1, autoincrement=True)
     loai_diem = Column(Enum(LoaiDiem), nullable=False)
+    hoc_ky = Column(Enum(HocKy), nullable=False)
     id_ket_qua_hoc_tap = relationship("KetQuaHocTap", backref='diem', lazy=True)
+
 
 
 class QuyDinh(db.Model):

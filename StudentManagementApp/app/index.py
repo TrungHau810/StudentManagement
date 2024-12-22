@@ -59,11 +59,12 @@ def logout_process():
 def add_student():
     if request.method.__eq__('POST'):
         ho_ten = request.form.get('ho_ten')
-        gioi_tinh = int(request.form.get('gioi_tinh'))
+        gioi_tinh_str = request.form.get('gioi_tinh')
+        gioi_tinh = GioiTinh[gioi_tinh_str]
         ngay_sinh = datetime.strptime(request.form.get('ngay_sinh'), '%Y-%m-%d')
         dia_chi = request.form.get('dia_chi')
         email = request.form.get('email')
-        avatar = request.files.get('avatar')
+        so_dien_thoai = request.form.get('so-dien-thoai')
 
         current_date = datetime.now()
 
@@ -72,17 +73,14 @@ def add_student():
                 (current_date.month, current_date.day) < (ngay_sinh.month, ngay_sinh.day))
 
         if age_now >= 15:
-            if avatar:
-                res = cloudinary.uploader.upload(avatar)
-                avatar = res.get('secure_url')
-            hs = dao.add_stu(ho_ten=ho_ten,
-                             gioi_tinh=gioi_tinh,
-                             ngay_sinh=ngay_sinh,
-                             dia_chi=dia_chi,
-                             email=email,
-                             avatar=avatar)
+            dao.add_stu(ho_ten=ho_ten,
+                        gioi_tinh=gioi_tinh,
+                        ngay_sinh=ngay_sinh,
+                        dia_chi=dia_chi,
+                        so_dien_thoai=so_dien_thoai,
+                        email=email)
 
-            dao.add_hs_to_lop(id_hs=hs, id_lop=dao.random_id_lop())
+            # dao.add_hs_to_lop(id_hs=hs, id_lop=dao.random_id_lop())
             message = "Thêm học sinh thành công"
         else:
             message = "Thêm học sinh thất bại, học sinh phải đủ 15 tuổi"
@@ -90,6 +88,13 @@ def add_student():
         return render_template('student_admissions.html', message=message)
 
     return render_template('student_admissions.html')
+@app.route("/scores-input")
+def nhap_diem():
+    nam_hoc=dao.get_nam_hoc()
+    return render_template('scores-input.html', nam_hoc=nam_hoc)
+
+
+
 
 
 @login.user_loader
@@ -98,10 +103,22 @@ def load_user(user_id):
 
 
 # Nhập điểm
-@app.route("/scores-input")
-def scores_input_view():
-    return render_template('scores-input.html')
 
+def scores_input_view():
+
+    return render_template('scores-input.html')
+@app.route('/api/get_hocsinh', methods=['POST'])
+def get_hocsinh_1():
+    data = request.get_json()
+    nam_hoc = data.get('nam_hoc')
+    ten_lop = data.get('ten_lop')
+
+    id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
+    id_lop = get_id_lop_by_ten_lop(ten_lop)
+    id_lop_khoa = get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop)
+    list_id_hs = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
+
+    return jsonify(get_hs_info_by_id_hs(list_id_hs))
 
 @app.route("/create-class-list")
 def class_list_view():

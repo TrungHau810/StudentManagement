@@ -3,13 +3,13 @@
 {% block body %}
 
 {% if current_user.is_authenticated %}
-<h3>Chào {{ current_user.username }}!</h3>
-<h1 class="text-center">Chào mừng đến trang quản trị!</h1>
+
+<h1 class="text-center text-primary mt-5 border border-primary p-4 bg-dark">Chào mừng {{ current_user.username }} đến trang quản trị!</h1>
 
 
 {% else %}
 
-<h1>Vui lòng <a href="/login">đăng nhập</a> để tiếp tục với Admin</h1>
+<h1 class="text-center text-danger mt-5 border border-danger p-3">Vui lòng <a href="/login">đăng nhập</a> để tiếp tục với Admin</h1>
 
 {% endif %}
 

@@ -11,6 +11,7 @@ from app.models import (User, HocSinh, UserRole,
                         HocKy, Khoi, LoaiDiem)
 from flask_admin import BaseView, expose
 
+
 admin = Admin(app, name='Student Manage System', template_mode='bootstrap4')
 
 
@@ -46,7 +47,9 @@ class UserView(AuthenticatedView):
         'dia_chi': 'Địa chỉ',
         'email': 'Email'
     }
+    column_searchable_list = ['id', 'user_role', 'username']
     column_filters = ['user_role']
+    can_view_details = True
 
 
 class MonHocView(AuthenticatedView):
@@ -80,6 +83,13 @@ class LogoutView(MyView):
         logout_user()
         return redirect('/')
 
+class StatsView(MyView):
+    @expose("/")
+    def index(self):
+
+
+        return self.render('admin/stats.html')
+
 
 admin.add_view(UserView(User, db.session))
 admin.add_view(MonHocView(MonHoc, db.session, name="Môn học"))
@@ -89,4 +99,5 @@ admin.add_view(ModelView(LopHocKhoa, db.session, name="Lớp-Năm học"))
 # admin.add_view(HocSinhView(User, db.session, name="Học sinh"))
 admin.add_view(KetQuaHocTapView(KetQuaHocTap, db.session, name="Bảng điểm"))
 admin.add_view(HocSinhLopHocView(HocSinhLopHocKhoa, db.session, name="Danh sách học sinh với lớp"))
+admin.add_view(StatsView(name='Thống Kê - Báo Cáo'))
 admin.add_view(LogoutView(name='Đăng xuất'))
