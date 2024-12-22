@@ -88,6 +88,7 @@ function loadHocsinh() {
 }
 
 
+
 // function changeLopOfHocSinh() {
 //     let id_lop = document.getElementsByClassName("lop-dropdown").value;
 //     let nam_hoc = document.getElementById("namHoc").value;

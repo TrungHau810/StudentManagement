@@ -88,13 +88,113 @@ def add_student():
         return render_template('student_admissions.html', message=message)
 
     return render_template('student_admissions.html')
-@app.route("/scores-input")
+
+
+@app.route('/scores-input', methods=['GET'])
+@login_required
 def nhap_diem():
-    nam_hoc=dao.get_nam_hoc()
+    # Lấy danh sách năm học
+    nam_hoc = dao.get_nam_hoc()
     return render_template('scores-input.html', nam_hoc=nam_hoc)
 
 
+@app.route('/api/get_namhoc', methods=['GET'])
+def get_namhoc():
+    try:
+        nam_hoc = db.session.query(Khoa.ten_khoa).distinct().all()
+        nam_hoc_list = [nh.ten_khoa for nh in nam_hoc]
+        return jsonify(nam_hoc_list)
+    except Exception as ex:
+        return jsonify({'error': str(ex)}), 400
+@app.route('/api/get_hocky_by_namhoc', methods=['POST'])
+def get_hocky():
+    try:
+        data = request.get_json()
+        nam_hoc = data.get('nam_hoc')
+        # Lấy học kỳ theo năm học
+        hoc_ky = db.session.query(Khoa.hoc_ky).filter(Khoa.ten_khoa == nam_hoc).all()
+        return jsonify({
+            'hoc_ky': [{'id': hk.hoc_ky.name, 'ten': hk.hoc_ky.value} for hk in hoc_ky]
+        })
+    except Exception as ex:
+        return jsonify({'error': str(ex)}), 400
 
+@app.route('/api/get_lop_by_namhoc_hocky', methods=['POST'])
+def get_lop():
+    try:
+        data = request.get_json()
+        nam_hoc = data.get('nam_hoc')
+        hoc_ky = data.get('hoc_ky')
+
+        # Lấy danh sách lớp theo năm học và học kỳ
+        lop_list = (db.session.query(LopHoc)
+                    .join(LopHocKhoa)
+                    .join(Khoa)
+                    .filter(Khoa.ten_khoa == nam_hoc,
+                            Khoa.hoc_ky == hoc_ky)
+                    .all())
+
+        return jsonify({
+            'lop': [{'id': lop.id, 'ten': lop.ten_lop} for lop in lop_list]
+        })
+    except Exception as ex:
+        return jsonify({'error': str(ex)}), 400
+
+@app.route('/api/get_students_and_subjects', methods=['POST'])
+def get_students_subjects():
+    try:
+        data = request.get_json()
+        nam_hoc = data.get('nam_hoc')
+        hoc_ky = data.get('hoc_ky')
+        lop_id = data.get('lop_id')
+
+        # Lấy danh sách học sinh
+        students = (db.session.query(HocSinh)
+                    .join(HocSinhLopHocKhoa)
+                    .join(LopHocKhoa)
+                    .filter(LopHocKhoa.id_lop == lop_id)
+                    .all())
+
+        # Lấy danh sách môn học
+        subjects = (db.session.query(MonHoc)
+                    .join(GiaoVienMonHocLopHocKhoa)
+                    .join(LopHocKhoa)
+                    .filter(LopHocKhoa.id_lop == lop_id)
+                    .all())
+
+        return jsonify({
+            'students': [{
+                'id': hs.id,
+                'ma_hs': f'HS{hs.id:03d}',
+                'ho_ten': hs.ho_ten
+            } for hs in students],
+            'subjects': [{
+                'id': mh.id,
+                'ten': mh.ten_mon_hoc
+            } for mh in subjects]
+        })
+    except Exception as ex:
+        return jsonify({'error': str(ex)}), 400
+@app.route('/api/save_scores', methods=['POST'])
+def save_scores():
+    try:
+        data = request.get_json()
+        scores = data.get('scores')
+        hoc_ky = data.get('hoc_ky')
+
+        for score in scores:
+            diem = Diem(
+                student_id=score['student_id'],
+                subject_id=score['subject_id'],
+                diem=score['diem'],
+                hoc_ky=hoc_ky
+            )
+            db.session.add(diem)
+        db.session.commit()
+
+        return jsonify({'message': 'Lưu điểm thành công'})
+    except Exception as ex:
+        return jsonify({'error': str(ex)}), 400
 
 
 @login.user_loader

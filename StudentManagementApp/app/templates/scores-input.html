@@ -1,93 +1,248 @@
 {% extends '/layout/base.html' %}
 
 {% block content %}
-
 <div class="container my-5">
-    <!-- Header -->
-    <h1 class="text-center mb-4">Quản lý điểm học sinh</h1>
+    <h1 class="text-center mb-4">Nhập Điểm Học Sinh</h1>
 
-    <!-- Dropdown chọn lớp -->
-    <div class="d-flex align-items-center mb-3">
+    <!-- Form chọn thông tin -->
+    <!-- Form chọn thông tin -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Năm Học</label>
+                    <select class="form-control" id="namHoc">
+                        <option value="">-- Chọn năm học --</option>
+                        <!-- Populate options dynamically -->
+                    </select>
+                </div>
+            </div>
 
-<!--        Chọn năm học-->
-        <div  class="row mb-3">
-            <div class="">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Học Kỳ</label>
+                    <select class="form-control" id="hocKy" disabled>
+                        <option value="">-- Chọn học kỳ --</option>
+                        <!-- Populate options dynamically -->
+                    </select>
+                </div>
+            </div>
 
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Lớp</label>
+                    <select class="form-control" id="lop" disabled>
+                        <option value="">-- Chọn lớp --</option>
+                        <!-- Populate options dynamically -->
+                    </select>
+                </div>
             </div>
         </div>
 
-        <!-- Học kỳ -->
-        <div class="me-3">
-            <label for="semester" class="form-label">Chọn Học Kỳ</label>
-            <select id="semester" name="semester" class="form-select">
-                <option value="1">Học Kỳ 1</option>
-                <option value="2">Học Kỳ 2</option>
-            </select>
-        </div>
+        <!-- Bảng nhập điểm -->
 
-        <!-- Năm học -->
-        <div>
-            <label for="academicYear" class="form-label">Chọn Năm Học</label>
-            <select id="academicYear" name="academicYear" class="form-select  ">
-                <option value="2023">2023 - 2024</option>
-                <option value="2024">2024 - 2025</option>
-                <option value="2025">2025 - 2026</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Content area for classes -->
-    <div id="classContent">
-        <!-- Lớp 10 -->
-        <div id="class1" class="class-panel">
-            <h2 class="mb-3">Lớp 10</h2>
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead class="table-dark">
+    <!-- Bảng nhập điểm -->
+    <div id="scoreTable" style="display: none;">
+            <table class="table table-bordered">
+                <thead>
                     <tr>
-                        <th>Mã Học Sinh</th>
+                        <th>Mã HS</th>
                         <th>Họ Tên</th>
-                        <th>Toán</th>
-                        <th>Văn</th>
-                        <th>Anh Văn</th>
-                        <th>Vật Lý</th>
-                        <th>Hoá Học</th>
-                        <th>Sinh Học</th>
+                        <th id="subjectHeaders"></th>
                     </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>HS001</td>
-                        <td>Nguyễn Văn A</td>
-                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
-                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
-                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
-                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
-                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
-                        <td><input type="text" class="form-control" placeholder="Điểm"></td>
-                    </tr>
-                    </tbody>
-                </table>
+                </thead>
+                <tbody id="studentScores">
+                </tbody>
+            </table>
+
+            <div class="text-center mt-3">
+                <button class="btn btn-primary" id="saveScores">Lưu Điểm</button>
             </div>
         </div>
-
-        <!-- Lớp 11 -->
-        <div id="class2" class="class-panel" style="display: none;">
-            <h2 class="mb-3">Lớp 11</h2>
-            <p>Danh sách điểm lớp 11 sẽ được hiển thị tại đây.</p>
-        </div>
-
-        <!-- Lớp 12 -->
-        <div id="class3" class="class-panel" style="display: none;">
-            <h2 class="mb-3">Lớp 12</h2>
-            <p>Danh sách điểm lớp 12 sẽ được hiển thị tại đây.</p>
-        </div>
     </div>
 
-    <!-- Submit Button -->
-    <div class="text-center mt-4">
-        <button class="btn btn-primary">Lưu Điểm</button>
-    </div>
-</div>
+    <script>
+    const namHocSelect = document.getElementById('namHoc');
+    const hocKySelect = document.getElementById('hocKy');
+    const lopSelect = document.getElementById('lop');
+    const subjectHeaders = document.getElementById('subjectHeaders');
+    const studentScores = document.getElementById('studentScores');
+    const scoreTable = document.getElementById('scoreTable');
+    const saveButton = document.getElementById('saveScores');
 
+    // Fetch năm học
+    async function fetchNamHoc() {
+        try {
+            const response = await fetch('/api/get_namhoc');
+            const data = await response.json();
+            namHocSelect.innerHTML = '<option value="">-- Chọn năm học --</option>';
+            data.forEach(nh => {
+                namHocSelect.innerHTML += `<option value="${nh}">${nh}</option>`;
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    fetchNamHoc();
+
+    // Xử lý khi chọn năm học
+    namHocSelect.addEventListener('change', async function() {
+        const namHoc = this.value;
+        if (!namHoc) return;
+
+        try {
+            const response = await fetch('/api/get_hocky_by_namhoc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nam_hoc: namHoc })
+            });
+
+            const data = await response.json();
+
+            // Cập nhật select học kỳ
+            hocKySelect.innerHTML = '<option value="">-- Chọn học kỳ --</option>';
+            data.hoc_ky.forEach(hk => {
+                hocKySelect.innerHTML += `<option value="${hk.id}">${hk.ten}</option>`;
+            });
+            hocKySelect.disabled = false;
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    // Xử lý khi chọn học kỳ
+    hocKySelect.addEventListener('change', async function() {
+        const hocKy = this.value;
+        const namHoc = namHocSelect.value;
+        if (!hocKy || !namHoc) return;
+
+        try {
+            const response = await fetch('/api/get_lop_by_namhoc_hocky', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nam_hoc: namHoc,
+                    hoc_ky: hocKy
+                })
+            });
+
+            const data = await response.json();
+
+            // Cập nhật select lớp
+            lopSelect.innerHTML = '<option value="">-- Chọn lớp --</option>';
+            data.lop.forEach(lop => {
+                lopSelect.innerHTML += `<option value="${lop.id}">${lop.ten}</option>`;
+            });
+            lopSelect.disabled = false;
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    // Xử lý khi chọn lớp
+    lopSelect.addEventListener('change', async function() {
+        const lopId = this.value;
+        const hocKy = hocKySelect.value;
+        const namHoc = namHocSelect.value;
+        if (!lopId || !hocKy || !namHoc) return;
+
+        try {
+            const response = await fetch('/api/get_students_and_subjects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nam_hoc: namHoc,
+                    hoc_ky: hocKy,
+                    lop_id: lopId
+                })
+            });
+
+            const data = await response.json();
+
+            // Hiển thị bảng điểm
+            renderScoreTable(data.students, data.subjects);
+            scoreTable.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    // Render bảng điểm
+    function renderScoreTable(students, subjects) {
+        // Render header môn học
+        subjectHeaders.innerHTML = '';
+        subjects.forEach(subject => {
+            subjectHeaders.innerHTML += `<th>${subject.ten}</th>`;
+        });
+
+        // Render rows học sinh
+        studentScores.innerHTML = '';
+        students.forEach(student => {
+            let row = `<tr>
+                <td>${student.ma_hs}</td>
+                <td>${student.ho_ten}</td>`;
+
+            subjects.forEach(subject => {
+                row += `<td>
+                    <input type="number" min="0" max="10" step="0.1"
+                        class="form-control score-input"
+                        data-student="${student.id}"
+                        data-subject="${subject.id}">
+                </td>`;
+            });
+
+            row += '</tr>';
+            studentScores.innerHTML += row;
+        });
+    }
+
+    // Xử lý lưu điểm
+    saveButton.addEventListener('click', async function() {
+        const scoreInputs = document.querySelectorAll('.score-input');
+        const scores = [];
+
+        scoreInputs.forEach(input => {
+            if (input.value) {
+                scores.push({
+                    student_id: input.dataset.student,
+                    subject_id: input.dataset.subject,
+                    diem: input.value
+                });
+            }
+        });
+
+        try {
+            const response = await fetch('/api/save_scores', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    scores: scores,
+                    hoc_ky: hocKySelect.value
+                })
+            });
+
+            const data = await response.json();
+            if (data.message) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi lưu điểm');
+        }
+    });
+    </script>
 {% endblock %}
