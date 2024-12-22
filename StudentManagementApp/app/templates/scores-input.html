@@ -4,69 +4,62 @@
 <div class="container my-5">
     <h1 class="text-center mb-4">Nhập Điểm Học Sinh</h1>
 
-    <!-- Form chọn thông tin -->
-    <!-- Form chọn thông tin -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Năm Học</label>
-                    <select class="form-control" id="namHoc">
-                        <option value="">-- Chọn năm học --</option>
-                        <!-- Populate options dynamically -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Năm Học</label>
+                <select class="form-control" id="namHoc">
+                    <option value="">-- Chọn năm học --</option>
                     </select>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Học Kỳ</label>
-                    <select class="form-control" id="hocKy" disabled>
-                        <option value="">-- Chọn học kỳ --</option>
-                        <!-- Populate options dynamically -->
-                    </select>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Lớp</label>
-                    <select class="form-control" id="lop" disabled>
-                        <option value="">-- Chọn lớp --</option>
-                        <!-- Populate options dynamically -->
-                    </select>
-                </div>
             </div>
         </div>
 
-        <!-- Bảng nhập điểm -->
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Học Kỳ</label>
+                <select class="form-control" id="hocKy" disabled>
+                    <option value="">-- Chọn học kỳ --</option>
+                    </select>
+            </div>
+        </div>
 
-    <!-- Bảng nhập điểm -->
-    <div id="scoreTable" style="display: none;">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Mã HS</th>
-                        <th>Họ Tên</th>
-                        <th id="subjectHeaders"></th>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Lớp</label>
+                <select class="form-control" id="lop" disabled>
+                    <option value="">-- Chọn lớp --</option>
+
+                    </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="classContent">
+    <div id="class1" class="class-panel">
+        <h2 class="mb-3" id="class-name"></h2> <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr id="subjectHeaders">
+
                     </tr>
                 </thead>
                 <tbody id="studentScores">
                 </tbody>
             </table>
-
-            <div class="text-center mt-3">
-                <button class="btn btn-primary" id="saveScores">Lưu Điểm</button>
-            </div>
         </div>
     </div>
+    <div class="text-center mt-3">
+        <button class="btn btn-primary" id="saveScores">Lưu Điểm</button>
+    </div>
+</div>
+</div>
 
-    <script>
+<script>
     const namHocSelect = document.getElementById('namHoc');
     const hocKySelect = document.getElementById('hocKy');
     const lopSelect = document.getElementById('lop');
     const subjectHeaders = document.getElementById('subjectHeaders');
     const studentScores = document.getElementById('studentScores');
-    const scoreTable = document.getElementById('scoreTable');
     const saveButton = document.getElementById('saveScores');
 
     // Fetch năm học
@@ -85,7 +78,7 @@
     fetchNamHoc();
 
     // Xử lý khi chọn năm học
-    namHocSelect.addEventListener('change', async function() {
+    namHocSelect.addEventListener('change', async function () {
         const namHoc = this.value;
         if (!namHoc) return;
 
@@ -113,7 +106,7 @@
     });
 
     // Xử lý khi chọn học kỳ
-    hocKySelect.addEventListener('change', async function() {
+    hocKySelect.addEventListener('change', async function () {
         const hocKy = this.value;
         const namHoc = namHocSelect.value;
         if (!hocKy || !namHoc) return;
@@ -146,39 +139,45 @@
 
     // Xử lý khi chọn lớp
     lopSelect.addEventListener('change', async function() {
-        const lopId = this.value;
-        const hocKy = hocKySelect.value;
-        const namHoc = namHocSelect.value;
-        if (!lopId || !hocKy || !namHoc) return;
+    const lopId = this.value;
+    const hocKy = hocKySelect.value;
+    const namHoc = namHocSelect.value;
+    if (!lopId || !hocKy || !namHoc) return;
 
-        try {
-            const response = await fetch('/api/get_students_and_subjects', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    nam_hoc: namHoc,
-                    hoc_ky: hocKy,
-                    lop_id: lopId
-                })
-            });
+    try {
+        const response = await fetch('/api/get_students_and_subjects', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nam_hoc: namHoc,
+                hoc_ky: hocKy,
+                lop_id: lopId
+            })
+        });
 
-            const data = await response.json();
+        const data = await response.json();
 
-            // Hiển thị bảng điểm
-            renderScoreTable(data.students, data.subjects);
-            scoreTable.style.display = 'block';
+        // Hiển thị tên lớp
+        const selectedClass = lopSelect.options[lopSelect.selectedIndex].text;
+        document.getElementById('class-name').innerText = selectedClass;
 
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    });
+        // Hiển thị bảng điểm
+        renderScoreTable(data.students, data.subjects);
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
 
     // Render bảng điểm
     function renderScoreTable(students, subjects) {
         // Render header môn học
-        subjectHeaders.innerHTML = '';
+        subjectHeaders.innerHTML = `
+        <th>Mã Học Sinh</th>
+        <th>Họ Tên</th>
+    `; // Thêm header cho cột Mã học sinh và Họ tên
         subjects.forEach(subject => {
             subjectHeaders.innerHTML += `<th>${subject.ten}</th>`;
         });
@@ -187,16 +186,16 @@
         studentScores.innerHTML = '';
         students.forEach(student => {
             let row = `<tr>
-                <td>${student.ma_hs}</td>
-                <td>${student.ho_ten}</td>`;
+            <td>${student.ma_hs}</td>
+            <td>${student.ho_ten}</td>`;
 
             subjects.forEach(subject => {
                 row += `<td>
-                    <input type="number" min="0" max="10" step="0.1"
-                        class="form-control score-input"
-                        data-student="${student.id}"
-                        data-subject="${subject.id}">
-                </td>`;
+                <input type="number" min="0" max="10" step="0.1"
+                    class="form-control score-input"
+                    data-student="${student.id}"
+                    data-subject="${subject.id}">
+            </td>`;
             });
 
             row += '</tr>';
@@ -205,7 +204,7 @@
     }
 
     // Xử lý lưu điểm
-    saveButton.addEventListener('click', async function() {
+    saveButton.addEventListener('click', async function () {
         const scoreInputs = document.querySelectorAll('.score-input');
         const scores = [];
 
@@ -244,5 +243,5 @@
             alert('Có lỗi xảy ra khi lưu điểm');
         }
     });
-    </script>
+</script>
 {% endblock %}

@@ -88,15 +88,23 @@ class Khoa(db.Model):
         return self.ten_khoa
 
 
+# class Diem(db.Model):
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     diem = Column(Float, default=0)
+#     lan = Column(Integer, default=1, autoincrement=True)
+#     loai_diem = Column(Enum(LoaiDiem), nullable=False)
+#     hoc_ky = Column(Enum(HocKy), nullable=False)
+#     id_ket_qua_hoc_tap = relationship("KetQuaHocTap", backref='diem', lazy=True)
+
 class Diem(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(Integer, ForeignKey(HocSinh.id), nullable=False)
+    subject_id = Column(Integer, ForeignKey(MonHoc.id), nullable=False)
     diem = Column(Float, default=0)
     lan = Column(Integer, default=1, autoincrement=True)
     loai_diem = Column(Enum(LoaiDiem), nullable=False)
     hoc_ky = Column(Enum(HocKy), nullable=False)
     id_ket_qua_hoc_tap = relationship("KetQuaHocTap", backref='diem', lazy=True)
-
-
 
 class QuyDinh(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)

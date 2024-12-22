@@ -67,7 +67,10 @@ def get_id_khoa_by_ten_khoa(ten_khoa):
 
 def get_id_lop_by_ten_lop(ten_lop):
     id_lop = db.session.query(LopHoc.id).filter(LopHoc.ten_lop == ten_lop).all()
-    return id_lop[0][0]
+    if id_lop:  # Kiểm tra danh sách có rỗng hay không
+        return id_lop[0][0]
+    else:
+        return None  # Hoặc trả về một giá trị mặc định khác
 
 
 def get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop):
