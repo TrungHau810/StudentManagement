@@ -50,7 +50,7 @@
             <th>Giới tính</th>
             <th>Năm sinh</th>
             <th>Địa chỉ</th>
-            <th></th>
+            <th>Lớp</th>
         </tr>
         </thead>
         <tbody id="hocsinh_body">
@@ -60,7 +60,7 @@
 
     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
         <button type="button" class="btn btn-primary btn-danger me-md-2">Hủy bỏ</button>
-        <button type="button" id="submit-button" class="btn btn-success" onclick="addHocSinhToLop()">Xác nhận</button>
+        <button type="button" id="submit-button" class="btn btn-success" onclick="changeLopOfHocSinh()">Xác nhận</button>
     </div>
 </div>
 <a href="{{ url_for('index') }}">Quay lại trang chủ</a>

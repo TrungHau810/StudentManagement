@@ -6,7 +6,7 @@ import dao
 from app import app, login, db
 from flask_login import login_user, logout_user, login_required
 
-from app.dao import get_id_khoa_by_ten_khoa, get_id_lop_by_ten_lop, get_id_lopkhoa_by_id_lop_khoa, \
+from app.dao import get_id_khoa_by_ten_khoa, get_id_lop_by_ten_lop, get_id_lopkhoa_by_id_lop_id_khoa, \
     get_list_id_hs_by_id_lopkhoa, get_hs_info_by_id_hs, get_all_lop
 from app.models import UserRole, Khoi, LopHoc
 from datetime import datetime
@@ -41,8 +41,6 @@ def login_view():
                     return redirect('/scores-input')
                 if user.get_role() == UserRole.STAFF:
                     return redirect('/addstudents')
-                if user.get_role() == UserRole.STUDENT:
-                    return redirect('/')
 
     return render_template('login.html')
 
@@ -106,6 +104,8 @@ def get_namhoc():
         return jsonify(nam_hoc_list)
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
+
+
 @app.route('/api/get_hocky_by_namhoc', methods=['POST'])
 def get_hocky():
     try:
@@ -118,6 +118,7 @@ def get_hocky():
         })
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
+
 
 @app.route('/api/get_lop_by_namhoc_hocky', methods=['POST'])
 def get_lop():
@@ -139,6 +140,7 @@ def get_lop():
         })
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
+
 
 @app.route('/api/get_students_and_subjects', methods=['POST'])
 def get_students_subjects():
@@ -175,6 +177,8 @@ def get_students_subjects():
         })
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
+
+
 @app.route('/api/save_scores', methods=['POST'])
 def save_scores():
     try:
@@ -203,10 +207,10 @@ def load_user(user_id):
 
 
 # Nhập điểm
-
 def scores_input_view():
-
     return render_template('scores-input.html')
+
+
 @app.route('/api/get_hocsinh', methods=['POST'])
 def get_hocsinh_1():
     data = request.get_json()
@@ -215,12 +219,59 @@ def get_hocsinh_1():
 
     id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
     id_lop = get_id_lop_by_ten_lop(ten_lop)
-    id_lop_khoa = get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop)
+    id_lop_khoa = get_id_lopkhoa_by_id_lop_id_khoa(id_khoa, id_lop)
     list_id_hs = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
 
-    return jsonify(get_hs_info_by_id_hs(list_id_hs))
+    return jsonify({
+        "hs": get_hs_info_by_id_hs(list_id_hs),
+        "lop": get_all_lop()
+    })
 
-@app.route("/create-class-list")
+
+@app.route('/api/get_hocsinh', methods=['GET'])
+def get_hocsinh():
+    try:
+        # Lấy các tham số từ query string
+        khoi = request.args.get('ten_khoi')
+        nam_hoc = request.args.get('nam_hoc')
+        ten_lop = request.args.get('ten_lop')
+
+        # Xử lý tìm kiếm học sinh theo các tiêu chí
+        query = db.session.query(HocSinh).join(HocSinhLopHocKhoa).join(LopHocKhoa).join(LopHoc).join(Khoa)
+
+        # Lọc theo khối nếu có
+        if khoi:
+            query = query.filter(LopHoc.khoi == Khoi[khoi.upper()])
+
+        # Lọc theo tên lớp nếu có
+        if ten_lop:
+            query = query.filter(LopHoc.ten_lop.ilike(f"%{ten_lop}%"))
+
+        # Lọc theo năm học nếu có
+        if nam_hoc:
+            query = query.filter(Khoa.ten_khoa.like(f"%{nam_hoc}%"))
+
+        # Trả về danh sách học sinh
+        hocsinh_list = query.all()
+        result = []
+        for hs in hocsinh_list:
+            result.append({
+                'id': hs.id,
+                'ho_ten': hs.ho_ten,
+                'gioi_tinh': hs.gioi_tinh.name,
+                'ngay_sinh': hs.ngay_sinh.strftime('%Y-%m-%d'),
+                'dia_chi': hs.dia_chi,
+                'so_dien_thoai': hs.so_dien_thoai,
+                'email': hs.email
+            })
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/class-list")
 def class_list_view():
     khoi = dao.get_khoi()
     nam_hoc = dao.get_nam_hoc()
@@ -244,59 +295,45 @@ def get_lop_by_khoi_khoa():
     return jsonify(lop_list)
 
 
-@app.route('/api/get_hocsinh', methods=['POST'])
-def get_hocsinh():
-    data = request.get_json()
-    ten_khoi = data.get('ten_khoi')
-    nam_hoc = data.get('nam_hoc')
-    ten_lop = data.get('ten_lop')
+@app.route("/api/update-lop-hs", methods=['POST'])
+def change_lop_hocsinh():
+    try:
+        # Lấy dữ liệu từ request body
+        data = request.get_json()
+        ten_lop_cu = data.get('ten_lop_cu')
+        lop_moi = data.get('lop_moi')
+        nam_hoc = data.get('nam_hoc')
 
-    id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
-    id_lop = get_id_lop_by_ten_lop(ten_lop)
-    id_lop_khoa = get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop)
-    list_id_hs = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
-    return jsonify({
-        'hs': get_hs_info_by_id_hs(list_id_hs),
-        'lop': get_all_lop()
-    })
+        # Lấy ID Khoa từ năm học
+        id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
 
+        # Lấy ID của lớp cũ
+        id_lop_cu = get_id_lop_by_ten_lop(ten_lop_cu)
 
-# @app.route("/api/change-lop-hs", metheds=['POST'])
-# def change_lop_hocsinh():
-#     data = request.get_json()
-#     id_lop = data.get('id_lop')
-#     nam_hoc = data.get('nam_hoc')
-#
-#     id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
-#     id_khoalop = get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop)
-#     pass
+        # Lấy ID của lớp-khoa cũ
+        id_khoalop_cu = get_id_lopkhoa_by_id_lop_id_khoa(id_khoa, id_lop_cu)
 
+        # Lấy danh sách học sinh từ lớp mới
+        list_id_hs = lop_moi['id_hs']
 
+        # Lấy ID của lớp mới
+        id_lop_moi = get_id_lop_by_ten_lop(lop_moi['id_lop'])
 
-@app.route('/api/add_hocsinh_to_lop', methods=['POST'])
-def add_hocsinh():
-    data = request.get_json()
-    ten_khoi = data.get('ten_khoi')
-    nam_hoc = data.get('nam_hoc')
-    ten_lop = data.get('ten_lop')
-    id_hocsinh = data.get('list')
-    print(id_hocsinh)
-    lop_list = LopHoc.query.filter_by(ten_lop=ten_lop).all()
-    if lop_list:
-        lop_id = lop_list[0].id
+        # Lấy ID lớp-khoa mới
+        id_khoalop_moi = get_id_lopkhoa_by_id_lop_id_khoa(id_khoa, id_lop_moi)
 
-    khoa = Khoa.query.filter_by(ten_khoa=nam_hoc).first()
-    if khoa:
-        khoa_id = khoa.id
+        # Cập nhật lớp-khoa cho các học sinh
+        for id_hs in list_id_hs:
+            hoc_sinh_lop_hien_tai = HocSinhLopHocKhoa.query.filter_by(id_hs=id_hs, id_lop_khoa=id_khoalop_cu).first()
+            if hoc_sinh_lop_hien_tai:
+                hoc_sinh_lop_hien_tai.id_lop_khoa = id_khoalop_moi
+                db.session.commit()
 
-    id_lop_khoa = LopHocKhoa.query.filter_by(id_lop=lop_id, id_khoa=khoa_id).first()
-    id_lop_khoa = id_lop_khoa.id
+        return jsonify({"message": "Cập nhật lớp học cho học sinh thành công"}), 200
 
-    for id in id_hocsinh:
-        hs = HocSinhLopHocKhoa(id_hs=id, id_lop_khoa=id_lop_khoa)
-        db.session.add(hs)
-    db.session.commit()
-    return jsonify({"message": "Thêm học sinh vào lớp thành công"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Có lỗi xảy ra", "details": str(e)}), 500
 
 
 if __name__ == "__main__":

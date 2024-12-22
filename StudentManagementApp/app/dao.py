@@ -1,6 +1,8 @@
 import hashlib
 import random
 import unidecode
+from flask import jsonify
+
 from app import db, app
 from app.models import (User, HocSinh, UserRole,
                         GioiTinh, MonHoc, LopHoc,
@@ -70,12 +72,17 @@ def get_id_lop_by_ten_lop(ten_lop):
     return id_lop[0][0]
 
 
-def get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop):
-    list_id_lop_khoa = []
-    for khoa in id_khoa:
-        id_lop_khoa = LopHocKhoa.query.filter_by(id_khoa=khoa, id_lop=id_lop).all()
-        list_id_lop_khoa.extend([lop_khoa.id for lop_khoa in id_lop_khoa])
-    return list_id_lop_khoa
+def get_id_lopkhoa_by_id_lop_id_khoa(id_khoa_list, id_lop):
+    # Truy vấn tất cả các LopHocKhoa có id_khoa trong danh sách và id_lop tương ứng
+    id_lop_khoa_list = (
+        LopHocKhoa.query
+        .filter(LopHocKhoa.id_khoa.in_(id_khoa_list), LopHocKhoa.id_lop == id_lop)
+        .with_entities(LopHocKhoa.id)  # Chỉ lấy trường id
+        .all()
+    )
+    # Trả về danh sách các id
+    return [item[0] for item in id_lop_khoa_list]
+
 
 def get_list_id_hs_by_id_lopkhoa(id_lopkhoa):
     if isinstance(id_lopkhoa, int):  # Nếu chỉ có một ID lớp khoa
@@ -85,10 +92,12 @@ def get_list_id_hs_by_id_lopkhoa(id_lopkhoa):
 
     return [item.id_hs for item in list_id_hs]
 
+
 def get_hs_info_by_id_hs(id_hs):
     hocsinh_list = HocSinh.query.filter(HocSinh.id.in_(id_hs)).all()
     hoc_sinh_info = [
         {
+            "id": hs.id,
             "ho_ten": hs.ho_ten,
             "gioi_tinh": hs.gioi_tinh.value,
             "nam_sinh": hs.ngay_sinh.year,
@@ -99,21 +108,24 @@ def get_hs_info_by_id_hs(id_hs):
     return hoc_sinh_info
 
 
-
 def get_all_lop():
     lop_hoc_list = LopHoc.query.with_entities(LopHoc.id, LopHoc.ten_lop).all()
     lophoc = [{
         "id": l.id,
         "ten_lop": l.ten_lop
     }
-    for l in lop_hoc_list
+        for l in lop_hoc_list
     ]
     return lophoc
 
 
-
-
 if __name__ == "__main__":
     with app.app_context():
-        # get_nam_hoc()
-        print(get_all_lop())
+        nam_hoc = '2023-2024'
+        lop = '10A1'
+
+        print(get_id_khoa_by_ten_khoa(nam_hoc))
+        id_khoa = get_id_khoa_by_ten_khoa(nam_hoc)
+        print(get_id_lop_by_ten_lop(lop))
+        id_lop = get_id_lop_by_ten_lop(lop)
+        print(get_id_lopkhoa_by_id_lop_id_khoa(id_khoa, id_lop))

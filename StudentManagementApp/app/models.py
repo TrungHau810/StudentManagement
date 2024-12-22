@@ -203,7 +203,7 @@ def load_quy_dinh_to_db(json_file):
 
 def add_lop_to_khoa():
     lop_ids = db.session.query(LopHoc.id).all()
-    khoa_ids = db.session.query(Khoa.id).filter(Khoa.hoc_ky == HocKy.HK1).all()
+    khoa_ids = db.session.query(Khoa.id).filter(Khoa.hoc_ky==HocKy.HK1).all()
     lop_ids = [lop[0] for lop in lop_ids]
     khoa_ids = [khoa[0] for khoa in khoa_ids]
     for lop_id in lop_ids:
@@ -228,7 +228,6 @@ def add_hocsinh_to_lopkhoa():
     db.session.commit()
 
 
-import random
 
 
 def add_hs_to_lopkhoa():
@@ -243,19 +242,31 @@ def add_hs_to_lopkhoa():
     db.session.commit()
 
 
+def add_gv_to_mon():
+    list_id_mon = db.session.query(MonHoc.id).all()
+    list_id_gv = db.session.query(User.id).filter(User.user_role == UserRole.TEACHER).all()
+    list_id_gv = [gv.id for gv in list_id_gv]
+    list_id_mon = [mh.id for mh in list_id_mon]
+    for gv in list_id_gv:
+        id_mh = random.choice(list_id_mon)
+        gv_mh = GiaoVienMonHoc(id_giao_vien=gv, id_mon_hoc=id_mh)
+        db.session.add(gv_mh)
+    db.session.commit()
+
+
 if __name__ == '__main__':
     with app.app_context():
         # Tạo models cho stu_manage_db
-        # db.create_all()
-        # # Nạp data các model vào db
-        # load_user_to_db('data/user.json')
-        # load_monhoc_to_db('data/monhoc.json')
-        # load_lophoc_to_db('data/lophoc.json')
-        # load_khoa_to_db('data/khoa.json')
-        # load_quy_dinh_to_db('data/quydinh.json')
-        # add_lop_to_khoa()
-        # add_hocsinh_to_lopkhoa()
+        db.create_all()
+        # Nạp data các model vào db
+        load_user_to_db('data/user.json')
+        load_monhoc_to_db('data/monhoc.json')
+        load_lophoc_to_db('data/lophoc.json')
+        load_khoa_to_db('data/khoa.json')
+        load_quy_dinh_to_db('data/quydinh.json')
         load_hs_to_db('data/hocsinh.json')
+        add_lop_to_khoa()
+        add_hocsinh_to_lopkhoa()
         add_hs_to_lopkhoa()
 
         # test()
