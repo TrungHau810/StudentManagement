@@ -222,13 +222,11 @@ function renderBangDiem(students) {
     `).join('');
 }
 
-// Xóa bảng
 function clearTable() {
     studentScores.innerHTML = '';
     document.getElementById('classContent').style.display = 'none';
 }
 
-// Khởi tạo trang
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing...');
     fetchNamHoc();

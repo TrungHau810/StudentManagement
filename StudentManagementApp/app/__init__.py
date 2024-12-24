@@ -16,9 +16,15 @@ db = SQLAlchemy(app)
 login = LoginManager(app)
 
 cloudinary.config(
-    cloud_name="tthau2004",
-    api_key="372274126191375",
-    api_secret="Abk-RA6C6MUKDV34nOuFDhpLFjs",
+    # cloud_name="tthau2004",
+    # api_key="372274126191375",
+    # api_secret="Abk-RA6C6MUKDV34nOuFDhpLFjs",
+    # secure=True
+
+    #test bằng cloudinary HoangThuan
+    cloud_name ="dg5ts9slf",
+    api_key="523315624128241",
+    api_secret="kpR83NbacJprFxwz2jCGxt3nb4E",
     secure=True
 )
 

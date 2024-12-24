@@ -7,6 +7,7 @@ from app import db, app
 from enum import Enum as RoleEnum
 import hashlib
 from flask_login import UserMixin
+import cloudinary.uploader
 
 
 class UserRole(RoleEnum):
@@ -61,6 +62,9 @@ class HocSinh(db.Model):
     email = Column(String(100), nullable=False)
 
 
+    def __str__(self):
+        return self.ho_ten
+
 class MonHoc(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     ten_mon_hoc = Column(String(100), nullable=False)
@@ -107,8 +111,27 @@ class Diem(db.Model):
     loai_diem = Column(Enum(LoaiDiem), nullable=False)
     hoc_ky = Column(Enum(HocKy), nullable=False)
 
+    # Relationships với eager loading
+    student = relationship('HocSinh', backref='diem_set', lazy='joined')
+    subject = relationship('MonHoc', backref='diem_set', lazy='joined')
+
     def __str__(self):
-        return str(self.diem)
+        return f"{self.student.ho_ten if self.student else ''} - {self.subject.ten_mon_hoc if self.subject else ''} - {self.diem}"
+
+# class Diem(db.Model):
+#     __tablename__ = 'diem'
+#
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     student_id = Column(Integer, ForeignKey('hoc_sinh.id'), nullable=False)
+#     subject_id = Column(Integer, ForeignKey('mon_hoc.id'), nullable=False)
+#     diem = Column(Float, nullable=False)
+#     lan = Column(Integer, nullable=False, default=1)
+#     loai_diem = Column(Enum(LoaiDiem), nullable=False)
+#     hoc_ky = Column(Enum(HocKy), nullable=False)
+#
+#
+#     def __str__(self):
+#         return str(self.diem)
 
 class QuyDinh(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)

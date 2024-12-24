@@ -17,22 +17,22 @@
             </div>
             <div class="col-md-3">
                 <label for="khoi">Khối:</label>
-                <select class="form-select" id="khoi" onchange="addLopToDropdown()">
+                <select class="form-select" id="khoi" onchange="loadHocsinh()">
                     <option value="">-- Chọn khối --</option>
                     {% for k in khoi %}
                     <option value="{{ k.name }}">{{ k.value }}</option>
                     {% endfor %}
                 </select>
+
+                <!-- Bỏ onchange của select lớp vì không cần nữa -->
+
             </div>
-            <div class="col-md-3">
-                <label for="lop">Lớp:</label>
-                <select class="form-select" id="lop" onchange="changeTitleTable(), loadHocsinh()">
-                    <option value="">-- Chọn lớp --</option>
-                    {% for lop in danh_sach_lop %}
-                    <option value="{{ lop.id }}">{{ lop.ten_lop }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+<!--            <div class="col-md-3">-->
+<!--                <label for="lop">Lớp:</label>-->
+<!--                <select class="form-select" id="lop">-->
+<!--                    <option value="">&#45;&#45; Chọn lớp &#45;&#45;</option>-->
+<!--                </select>-->
+<!--            </div>-->
             <div class="col-md-3">
                 <label for="siso">Sĩ số:</label>
                 <input type="number" class="form-control" id="siso">
@@ -50,18 +50,19 @@
             <th>Giới tính</th>
             <th>Năm sinh</th>
             <th>Địa chỉ</th>
-            <th></th>
+            <th>Lớp</th>
         </tr>
         </thead>
         <tbody id="hocsinh_body">
         <!-- Dữ liệu học sinh sẽ được đổ vào đây -->
         </tbody>
     </table>
-
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-        <button type="button" class="btn btn-primary btn-danger me-md-2">Hủy bỏ</button>
-        <button type="button" id="submit-button" class="btn btn-success" onclick="addHocSinhToLop()">Xác nhận</button>
-    </div>
+<!--js xử lý-->
+<!--    <div class="d-grid gap-2 d-md-flex justify-content-md-end">-->
+<!--        <button type="button" class="btn btn-primary btn-danger me-md-2">Hủy bỏ</button>-->
+<!--        <button type="button" id="submit-button" class="btn btn-success" onclick="changeLopOfHocSinh()">Xác nhận-->
+<!--        </button>-->
+<!--    </div>-->
 </div>
 <a href="{{ url_for('index') }}">Quay lại trang chủ</a>
 

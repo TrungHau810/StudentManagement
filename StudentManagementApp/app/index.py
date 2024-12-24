@@ -108,6 +108,7 @@ def add_student():
         email = request.form.get('email')
         so_dien_thoai = request.form.get('so-dien-thoai')
 
+
         current_date = datetime.now()
 
         # tính tuổi
@@ -115,6 +116,7 @@ def add_student():
                 (current_date.month, current_date.day) < (ngay_sinh.month, ngay_sinh.day))
 
         if age_now >= 15 and age_now <= 20:
+
             dao.add_stu(ho_ten=ho_ten,
                         gioi_tinh=gioi_tinh,
                         ngay_sinh=ngay_sinh,
@@ -576,24 +578,217 @@ def get_scores():
         return jsonify({'error': str(e)}), 500
 
 
+# @app.route('/api/get_bangdiem', methods=['POST'])
+# def get_bangdiem():
+#     try:
+#         data = request.get_json()
+#         lop_id = data.get('lop_id')
+#         mon_hoc_id = data.get('mon_hoc_id')
+#         hoc_ky = data.get('hoc_ky')
+#
+#         # Chuyển đổi học kỳ string sang enum
+#         hoc_ky_enum = HocKy.HK1 if hoc_ky == "HK1" else HocKy.HK2
+#
+#         # Lấy điểm từ database
+#         scores = dao.get_student_scores(lop_id, mon_hoc_id, hoc_ky_enum)
+#         return jsonify(scores)
+#
+#     except Exception as e:
+#         print(f"Error in get_bangdiem: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
 @app.route('/api/get_bangdiem', methods=['POST'])
 def get_bangdiem():
     try:
-        data = request.get_json()
+        data = request.json
+        nam_hoc = data.get('nam_hoc')
+        hoc_ky = data.get('hoc_ky')
         lop_id = data.get('lop_id')
         mon_hoc_id = data.get('mon_hoc_id')
-        hoc_ky = data.get('hoc_ky')
 
-        # Chuyển đổi học kỳ string sang enum
-        hoc_ky_enum = HocKy.HK1 if hoc_ky == "HK1" else HocKy.HK2
+        print(f"Debug - Received data: nam_hoc={nam_hoc}, hoc_ky={hoc_ky}, lop_id={lop_id}, mon_hoc_id={mon_hoc_id}")
 
-        # Lấy điểm từ database
-        scores = dao.get_student_scores(lop_id, mon_hoc_id, hoc_ky_enum)
-        return jsonify(scores)
+        # Kiểm tra môn học tồn tại
+        mon_hoc = MonHoc.query.get(mon_hoc_id)
+        if not mon_hoc:
+            return jsonify({'error': f'Không tìm thấy môn học với ID {mon_hoc_id}'}), 404
+
+        # Lấy khóa học
+        khoa = Khoa.query.filter_by(ten_khoa=nam_hoc).first()
+        if not khoa:
+            return jsonify({'error': 'Không tìm thấy năm học'}), 404
+
+        # Lấy lớp học khóa
+        lop_khoa = LopHocKhoa.query.filter_by(
+            id_lop=lop_id,
+            id_khoa=khoa.id
+        ).first()
+
+        if not lop_khoa:
+            return jsonify({'error': 'Không tìm thấy lớp trong năm học này'}), 404
+
+        # Lấy danh sách học sinh và điểm
+        students = db.session.query(HocSinh) \
+            .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs) \
+            .filter(HocSinhLopHocKhoa.id_lop_khoa == lop_khoa.id) \
+            .all()
+
+        result = []
+        for student in students:
+            student_data = {
+                'ma_hs': student.id,
+                'ho_ten': student.ho_ten,
+                'diem_tx': None,
+                'diem_gk': None,
+                'diem_ck': None
+            }
+
+            # Lấy điểm của từng loại
+            try:
+                diem_tx = Diem.query.filter_by(
+                    student_id=student.id,
+                    subject_id=mon_hoc_id,
+                    loai_diem=LoaiDiem.DIEMTX,
+                    hoc_ky=hoc_ky
+                ).order_by(Diem.lan.desc()).first()
+                student_data['diem_tx'] = diem_tx.diem if diem_tx else None
+
+                diem_gk = Diem.query.filter_by(
+                    student_id=student.id,
+                    subject_id=mon_hoc_id,
+                    loai_diem=LoaiDiem.DIEMGK,
+                    hoc_ky=hoc_ky
+                ).order_by(Diem.lan.desc()).first()
+                student_data['diem_gk'] = diem_gk.diem if diem_gk else None
+
+                diem_ck = Diem.query.filter_by(
+                    student_id=student.id,
+                    subject_id=mon_hoc_id,
+                    loai_diem=LoaiDiem.DIEMCK,
+                    hoc_ky=hoc_ky
+                ).order_by(Diem.lan.desc()).first()
+                student_data['diem_ck'] = diem_ck.diem if diem_ck else None
+
+            except Exception as e:
+                print(f"Error getting scores for student {student.id}: {str(e)}")
+                # Tiếp tục với học sinh tiếp theo nếu có lỗi
+                continue
+
+            result.append(student_data)
+
+        print(f"Debug - Found {len(result)} students")
+        return jsonify(result)
 
     except Exception as e:
         print(f"Error in get_bangdiem: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/get_unassigned_students', methods=['POST'])
+def get_unassigned_students():
+    try:
+        data = request.json
+        nam_hoc = data.get('nam_hoc')
+        khoi = data.get('khoi')
+
+        # Lấy danh sách học sinh chưa được phân lớp trong năm học này
+        khoa = Khoa.query.filter_by(ten_khoa=nam_hoc).first()
+        if not khoa:
+            return jsonify({'error': 'Không tìm thấy năm học'}), 404
+
+        # Lấy danh sách học sinh đã có lớp
+        assigned_students = db.session.query(HocSinh.id) \
+            .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs) \
+            .join(LopHocKhoa, HocSinhLopHocKhoa.id_lop_khoa == LopHocKhoa.id) \
+            .join(Khoa, LopHocKhoa.id_khoa == Khoa.id) \
+            .filter(Khoa.ten_khoa == nam_hoc) \
+            .subquery()
+
+        # Lấy học sinh chưa có lớp
+        unassigned_students = HocSinh.query \
+            .filter(~HocSinh.id.in_(assigned_students)) \
+            .all()
+
+        # Lấy danh sách lớp theo khối
+        lops = LopHoc.query.filter_by(khoi=khoi).all()
+
+        return jsonify({
+            'students': [{
+                'id': hs.id,
+                'ho_ten': hs.ho_ten,
+                'gioi_tinh': hs.gioi_tinh.value,
+                'ngay_sinh': hs.ngay_sinh.isoformat(),
+                'dia_chi': hs.dia_chi
+            } for hs in unassigned_students],
+            'lops': [{
+                'id': lop.id,
+                'ten_lop': lop.ten_lop
+            } for lop in lops]
+        })
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/assign_student_to_class', methods=['POST'])
+def assign_student_to_class():
+    try:
+        data = request.json
+        student_id = data.get('student_id')
+        lop_id = data.get('lop_id')
+        nam_hoc = data.get('nam_hoc')
+
+        # Kiểm tra sĩ số lớp
+        lop = LopHoc.query.get(lop_id)
+        khoa = Khoa.query.filter_by(ten_khoa=nam_hoc).first()
+
+        if not lop or not khoa:
+            return jsonify({
+                'success': False,
+                'message': 'Không tìm thấy lớp hoặc năm học'
+            }), 404
+
+        lop_khoa = LopHocKhoa.query.filter_by(
+            id_lop=lop_id,
+            id_khoa=khoa.id
+        ).first()
+
+        if not lop_khoa:
+            return jsonify({
+                'success': False,
+                'message': 'Không tìm thấy lớp trong năm học này'
+            }), 404
+
+        # Kiểm tra sĩ số
+        current_count = HocSinhLopHocKhoa.query \
+            .filter_by(id_lop_khoa=lop_khoa.id) \
+            .count()
+
+        if current_count >= lop.si_so:
+            return jsonify({
+                'success': False,
+                'message': f'Lớp {lop.ten_lop} đã đủ sĩ số ({lop.si_so} học sinh)'
+            })
+
+        # Thêm học sinh vào lớp
+        hs_lop_khoa = HocSinhLopHocKhoa(
+            id_hs=student_id,
+            id_lop_khoa=lop_khoa.id
+        )
+        db.session.add(hs_lop_khoa)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Phân lớp thành công'
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
 if __name__ == "__main__":
     with app.app_context():
         from app import admin
