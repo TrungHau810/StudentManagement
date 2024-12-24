@@ -457,6 +457,144 @@ def get_student_scores(lop_id, mon_hoc_id, hoc_ky):
     except Exception as e:
         print(f"Error in get_student_scores: {str(e)}")
         raise e
+
+#vẽ biểu đồ
+def get_students_count_per_class():
+    results = (
+        db.session.query(
+            LopHoc.ten_lop,
+            db.func.count(HocSinhLopHocKhoa.id_hs).label('total_students')
+        )
+        .join(LopHocKhoa, LopHoc.id == LopHocKhoa.id_lop)
+        .join(HocSinhLopHocKhoa, LopHocKhoa.id == HocSinhLopHocKhoa.id_lop_khoa)
+        .group_by(LopHoc.ten_lop)
+        .all()
+    )
+
+    return [{"ten_lop": r.ten_lop, "total_students": r.total_students} for r in results]
+
+
+def get_gender_ratio_by_class(class_id):
+    results = (
+        db.session.query(
+            HocSinh.gioi_tinh,
+            db.func.count(HocSinh.id).label('count')
+        )
+        .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)
+        .join(LopHocKhoa, HocSinhLopHocKhoa.id_lop_khoa == LopHocKhoa.id)
+        .filter(LopHocKhoa.id_lop == class_id)
+        .group_by(HocSinh.gioi_tinh)
+        .all()
+    )
+
+    # Mặc định số lượng là 0 nếu không có dữ liệu
+    gender_counts = {gender.value: count for gender, count in results}
+    total_students = sum(gender_counts.values())
+
+    return {
+        "nam": gender_counts.get("Nam", 0),
+        "nu": gender_counts.get("Nữ", 0),
+        "tong": total_students
+    }
+
+
+def get_grade_distribution():
+    try:
+        print("\n=== BẮT ĐẦU LẤY PHÂN PHỐI ĐIỂM ===")
+
+        # 1. Kiểm tra dữ liệu trong CSDL
+        total_scores = db.session.query(Diem).count()
+        print(f"Tổng số điểm trong CSDL: {total_scores}")
+
+        # Kiểm tra chi tiết điểm mẫu
+        print("\nMẫu điểm trong CSDL:")
+        sample_scores = Diem.query.limit(5).all()
+        for score in sample_scores:
+            print(f"- Học sinh {score.student_id}, Môn {score.subject_id}: "
+                  f"{score.diem} điểm, Loại: {score.loai_diem.value}, "
+                  f"Lần: {score.lan}, Kỳ: {score.hoc_ky.value}")
+
+        # 2. Lấy điểm cuối kỳ mới nhất của mỗi học sinh
+        latest_scores = db.session.query(
+            Diem.student_id,
+            Diem.subject_id,
+            db.func.max(Diem.lan).label('max_lan')
+        ).filter(
+            Diem.loai_diem == LoaiDiem.DIEMCK
+        ).group_by(
+            Diem.student_id,
+            Diem.subject_id
+        ).subquery()
+
+        # 3. Query chính để lấy phân phối điểm
+        results = db.session.query(
+            LopHoc.ten_lop,
+            MonHoc.ten_mon_hoc,
+            db.func.count(db.case(
+                [(Diem.diem >= 8.0, 1)],
+                else_=None
+            )).label('gioi'),
+            db.func.count(db.case(
+                [(db.and_(Diem.diem >= 6.5, Diem.diem < 8.0), 1)],
+                else_=None
+            )).label('kha'),
+            db.func.count(db.case(
+                [(db.and_(Diem.diem >= 5.0, Diem.diem < 6.5), 1)],
+                else_=None
+            )).label('trung_binh'),
+            db.func.count(db.case(
+                [(Diem.diem < 5.0, 1)],
+                else_=None
+            )).label('yeu')
+        ).select_from(Diem) \
+            .join(latest_scores, db.and_(
+            Diem.student_id == latest_scores.c.student_id,
+            Diem.subject_id == latest_scores.c.subject_id,
+            Diem.lan == latest_scores.c.max_lan
+        )) \
+            .join(MonHoc, MonHoc.id == Diem.subject_id) \
+            .join(HocSinhLopHocKhoa, HocSinhLopHocKhoa.id_hs == Diem.student_id) \
+            .join(LopHocKhoa, LopHocKhoa.id == HocSinhLopHocKhoa.id_lop_khoa) \
+            .join(LopHoc, LopHoc.id == LopHocKhoa.id_lop) \
+            .filter(Diem.loai_diem == LoaiDiem.DIEMCK) \
+            .group_by(
+            LopHoc.ten_lop,
+            MonHoc.ten_mon_hoc
+        ).all()
+
+        print(f"\nSố kết quả truy vấn: {len(results)}")
+
+        # 4. Chuyển đổi kết quả thành JSON
+        data = [{
+            'ten_lop': r.ten_lop,
+            'mon_hoc': r.ten_mon_hoc,
+            'gioi': int(r.gioi or 0),
+            'kha': int(r.kha or 0),
+            'trung_binh': int(r.trung_binh or 0),
+            'yeu': int(r.yeu or 0)
+        } for r in results]
+
+        # 5. In kết quả chi tiết
+        print("\nKết quả phân phối điểm:")
+        for d in data:
+            print(f"\nLớp {d['ten_lop']} - Môn {d['mon_hoc']}:")
+            print(f"  Giỏi: {d['gioi']}")
+            print(f"  Khá: {d['kha']}")
+            print(f"  Trung bình: {d['trung_binh']}")
+            print(f"  Yếu: {d['yeu']}")
+            total = d['gioi'] + d['kha'] + d['trung_binh'] + d['yeu']
+            print(f"  Tổng số học sinh: {total}")
+
+        return data
+
+    except Exception as e:
+        print("\n=== LỖI KHI LẤY PHÂN PHỐI ĐIỂM ===")
+        print(f"Loại lỗi: {e.__class__.__name__}")
+        print(f"Chi tiết: {str(e)}")
+        import traceback
+        print("\nStack trace:")
+        print(traceback.format_exc())
+        return []
 if __name__ == "__main__":
     with app.app_context():
         ten_nam = "2024-2025"

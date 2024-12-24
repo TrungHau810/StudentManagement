@@ -789,6 +789,67 @@ def assign_student_to_class():
             'success': False,
             'message': str(e)
         }), 500
+
+#Xử lý vẽ biểu đồ
+@app.route('/api/add_hocsinh_to_lop', methods=['POST'])
+def add_hocsinh():
+    data = request.get_json()
+    ten_khoi = data.get('ten_khoi')
+    nam_hoc = data.get('nam_hoc')
+    ten_lop = data.get('ten_lop')
+    id_hocsinh = data.get('list')
+    print(id_hocsinh)
+    lop_list = LopHoc.query.filter_by(ten_lop=ten_lop).all()
+    if lop_list:
+        lop_id = lop_list[0].id
+
+    khoa = Khoa.query.filter_by(ten_khoa=nam_hoc).first()
+    if khoa:
+        khoa_id = khoa.id
+
+    id_lop_khoa = LopHocKhoa.query.filter_by(id_lop=lop_id, id_khoa=khoa_id).first()
+    id_lop_khoa = id_lop_khoa.id
+
+    for id in id_hocsinh:
+        hs = HocSinhLopHocKhoa(id_hs=id, id_lop_khoa=id_lop_khoa)
+        db.session.add(hs)
+    db.session.commit()
+    return jsonify({"message": "Thêm học sinh vào lớp thành công"})
+
+
+@app.route('/api/student-counts')
+def api_student_counts():
+    data = dao.get_students_count_per_class()
+    return jsonify(data)
+
+
+@app.route('/api/gender-ratio', methods=['GET'])
+def gender_ratio_api():
+    try:
+        classes = get_all_lop()  # Lấy tất cả các lớp
+        data = []
+        for cls in classes:
+            ratio = dao.get_gender_ratio_by_class(cls['id'])
+            data.append({
+                "ten_lop": cls['ten_lop'],
+                "nam": ratio['nam'],
+                "nu": ratio['nu'],
+                "tong": ratio['tong']
+            })
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/grade-distribution', methods=['GET'])
+def grade_distribution_api():
+    try:
+        print("Đang gọi API grade-distribution...")
+        data = dao.get_grade_distribution()
+        print("Dữ liệu trả về từ DAO:", data)
+        return jsonify(data)
+    except Exception as e:
+        print(f"Lỗi trong API grade-distribution: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
     with app.app_context():
         from app import admin
