@@ -140,7 +140,7 @@ class QuyDinh(db.Model):
 
 
 class KetQuaHocTap(db.Model):
-    id_hs = Column(Integer, ForeignKey(User.id), primary_key=True)
+    id_hs = Column(Integer, ForeignKey(HocSinh.id), primary_key=True)
     id_mon_hoc = Column(Integer, ForeignKey(MonHoc.id), primary_key=True)
     id_diem = Column(Integer, ForeignKey(Diem.id), nullable=False)
 

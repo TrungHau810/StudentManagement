@@ -108,7 +108,6 @@ def add_student():
         email = request.form.get('email')
         so_dien_thoai = request.form.get('so-dien-thoai')
 
-
         current_date = datetime.now()
 
         # tính tuổi
@@ -226,7 +225,6 @@ def get_monhoc_by_lop():
         hoc_ky = data.get('hoc_ky')
         nam_hoc = data.get('nam_hoc')
 
-
         khoa_id = dao.get_khoa_id(nam_hoc, hoc_ky)
         if not khoa_id:
             return jsonify({'error': 'Không tìm thấy khóa học'}), 404
@@ -263,6 +261,8 @@ def test_data():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 # @app.route('/api/get_students_and_subjects', methods=['POST'])
 # def get_students_and_subjects():
 #     try:
@@ -309,9 +309,6 @@ def api_get_students_and_subjects():
     except Exception as e:
         print(f"Error in api_get_students_and_subjects: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-
-
 
 
 @login.user_loader
@@ -372,7 +369,6 @@ def get_hocsinh_not_in_class():
         lop_id = int(data.get('lop_id'))
 
         print(f"nam_hoc: {nam_hoc}, khoi: {khoi}, lop_id: {lop_id}")
-
 
         khoa_id_query = db.session.query(Khoa.id).filter(Khoa.ten_khoa == nam_hoc).first()
 
@@ -458,6 +454,7 @@ def save_scores():
     except Exception as e:
         print("Error saving scores:", str(e))  # Debug log
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/get_hocsinh', methods=['POST'])
 def get_hocsinh():
@@ -556,6 +553,7 @@ def add_hocsinh_to_lop():
 @app.route('/scores-export')
 def scores_export():
     return render_template('scores-export.html')
+
 
 @app.route('/api/get_scores', methods=['POST'])
 def get_scores():
@@ -682,6 +680,7 @@ def get_bangdiem():
         print(f"Error in get_bangdiem: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/api/get_unassigned_students', methods=['POST'])
 def get_unassigned_students():
     try:
@@ -790,7 +789,8 @@ def assign_student_to_class():
             'message': str(e)
         }), 500
 
-#Xử lý vẽ biểu đồ
+
+# Xử lý vẽ biểu đồ
 @app.route('/api/add_hocsinh_to_lop', methods=['POST'])
 def add_hocsinh():
     data = request.get_json()
@@ -840,6 +840,7 @@ def gender_ratio_api():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/api/grade-distribution', methods=['GET'])
 def grade_distribution_api():
     try:
@@ -850,6 +851,19 @@ def grade_distribution_api():
     except Exception as e:
         print(f"Lỗi trong API grade-distribution: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/report', methods=['GET'])
+def get_report():
+    subject_id = request.args.get('subject_id')  # ID môn học
+    semester = request.args.get('semester')  # Học kỳ (e.g., 'HK1', 'HK2')
+    year = request.args.get('year')  # Năm học
+
+    # Gọi hàm trong DAO
+    report_data = dao.get_class_report(subject_id, semester, year)
+    return jsonify(report_data)
+
+
 if __name__ == "__main__":
     with app.app_context():
         from app import admin

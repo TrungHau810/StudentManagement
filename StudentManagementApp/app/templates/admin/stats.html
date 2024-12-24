@@ -10,13 +10,13 @@
         <h3 class="text-center">Số Lượng Học Sinh Theo Lớp</h3>
         <table class="table table-bordered mt-4">
             <thead>
-                <tr>
-                    <th class="bg-primary text-white">Tên Lớp</th>
-                    <th class="bg-primary text-white">Số Lượng Học Sinh</th>
-                </tr>
+            <tr>
+                <th class="bg-primary text-white">Tên Lớp</th>
+                <th class="bg-primary text-white">Số Lượng Học Sinh</th>
+            </tr>
             </thead>
             <tbody id="studentTableBody">
-                <!-- Dữ liệu sẽ được thêm động -->
+            <!-- Dữ liệu sẽ được thêm động -->
             </tbody>
         </table>
     </div>
@@ -34,15 +34,15 @@
         <h3 class="text-center">Tỷ Lệ Nam Nữ Theo Lớp</h3>
         <table class="table table-bordered mt-4">
             <thead>
-                <tr>
-                    <th class="bg-primary text-white">Tên Lớp</th>
-                    <th class="bg-primary text-white">Số Nam</th>
-                    <th class="bg-primary text-white">Số Nữ</th>
-                    <th class="bg-primary text-white">Tổng</th>
-                </tr>
+            <tr>
+                <th class="bg-primary text-white">Tên Lớp</th>
+                <th class="bg-primary text-white">Số Nam</th>
+                <th class="bg-primary text-white">Số Nữ</th>
+                <th class="bg-primary text-white">Tổng</th>
+            </tr>
             </thead>
             <tbody id="genderTableBody">
-                <!-- Dữ liệu sẽ được thêm động -->
+            <!-- Dữ liệu sẽ được thêm động -->
             </tbody>
         </table>
     </div>
@@ -54,156 +54,156 @@
     </div>
 
 
-<!--   -->
-<!--    &lt;!&ndash; Bảng phân phối điểm &ndash;&gt;-->
-<!--    <div class="col-md-6 col-12">-->
-<!--        <h3 class="text-center">Phân Phối Điểm Theo Lớp và Môn Học</h3>-->
-<!--        <table class="table table-bordered mt-4">-->
-<!--            <thead>-->
-<!--                <tr>-->
-<!--                    <th class="bg-primary text-white">Lớp</th>-->
-<!--                    <th class="bg-primary text-white">Môn học</th>-->
-<!--                    <th class="bg-primary text-white">Giỏi</th>-->
-<!--                    <th class="bg-primary text-white">Khá</th>-->
-<!--                    <th class="bg-primary text-white">TB</th>-->
-<!--                    <th class="bg-primary text-white">Yếu</th>-->
-<!--                    <th class="bg-primary text-white">Tổng</th>-->
-<!--                </tr>-->
-<!--            </thead>-->
-<!--            <tbody id="gradeTableBody">-->
-<!--                &lt;!&ndash; Dữ liệu sẽ được thêm động &ndash;&gt;-->
-<!--            </tbody>-->
-<!--        </table>-->
-<!--    </div>-->
+    <!--   -->
+    <!--    &lt;!&ndash; Bảng phân phối điểm &ndash;&gt;-->
+    <!--    <div class="col-md-6 col-12">-->
+    <!--        <h3 class="text-center">Phân Phối Điểm Theo Lớp và Môn Học</h3>-->
+    <!--        <table class="table table-bordered mt-4">-->
+    <!--            <thead>-->
+    <!--                <tr>-->
+    <!--                    <th class="bg-primary text-white">Lớp</th>-->
+    <!--                    <th class="bg-primary text-white">Môn học</th>-->
+    <!--                    <th class="bg-primary text-white">Giỏi</th>-->
+    <!--                    <th class="bg-primary text-white">Khá</th>-->
+    <!--                    <th class="bg-primary text-white">TB</th>-->
+    <!--                    <th class="bg-primary text-white">Yếu</th>-->
+    <!--                    <th class="bg-primary text-white">Tổng</th>-->
+    <!--                </tr>-->
+    <!--            </thead>-->
+    <!--            <tbody id="gradeTableBody">-->
+    <!--                &lt;!&ndash; Dữ liệu sẽ được thêm động &ndash;&gt;-->
+    <!--            </tbody>-->
+    <!--        </table>-->
+    <!--    </div>-->
 
-<!--    &lt;!&ndash; Biểu đồ phân phối điểm &ndash;&gt;-->
-<!--    <div class="col-md-6 col-12">-->
-<!--        <h3 class="text-center">Biểu Đồ Phân Phối Điểm</h3>-->
-<!--        <canvas id="gradeChart"></canvas>-->
-<!--    </div>-->
-<!--</div>-->
+    <!--    &lt;!&ndash; Biểu đồ phân phối điểm &ndash;&gt;-->
+    <!--    <div class="col-md-6 col-12">-->
+    <!--        <h3 class="text-center">Biểu Đồ Phân Phối Điểm</h3>-->
+    <!--        <canvas id="gradeChart"></canvas>-->
+    <!--    </div>-->
+    <!--</div>-->
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
-    // Hàm vẽ biểu đồ cột
-function drawChart(labels, data) {
-    const ctx = document.getElementById('myChart');
+    <script>
+        // Hàm vẽ biểu đồ cột
+        function drawChart(labels, data) {
+            const ctx = document.getElementById('myChart');
 
-    const colors = [
-        'rgba(54, 162, 235, 0.8)', // Xanh lam đậm
-        'rgba(255, 99, 132, 0.8)', // Đỏ đậm
-        'rgba(255, 206, 86, 0.8)', // Vàng đậm
-        'rgba(75, 192, 192, 0.8)', // Xanh ngọc đậm
-        'rgba(153, 102, 255, 0.8)', // Tím đậm
-        'rgba(255, 159, 64, 0.8)', // Cam đậm
-        'rgba(102, 255, 102, 0.8)'  // Xanh lá đậm
-    ];
+            const colors = [
+                'rgba(54, 162, 235, 0.8)', // Xanh lam đậm
+                'rgba(255, 99, 132, 0.8)', // Đỏ đậm
+                'rgba(255, 206, 86, 0.8)', // Vàng đậm
+                'rgba(75, 192, 192, 0.8)', // Xanh ngọc đậm
+                'rgba(153, 102, 255, 0.8)', // Tím đậm
+                'rgba(255, 159, 64, 0.8)', // Cam đậm
+                'rgba(102, 255, 102, 0.8)'  // Xanh lá đậm
+            ];
 
-    const borderColors = colors.map(color => color.replace('0.8', '1')); // Màu viền đậm hơn nữa
+            const borderColors = colors.map(color => color.replace('0.8', '1')); // Màu viền đậm hơn nữa
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Số lượng học sinh',
-                data: data,
-                backgroundColor: colors.slice(0, labels.length),
-                borderColor: borderColors.slice(0, labels.length),
-                borderWidth: 1.5 // Tăng độ dày viền
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: true, position: 'top' }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { color: '#333' } // Màu chữ trục y
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Số lượng học sinh',
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: borderColors.slice(0, labels.length),
+                        borderWidth: 1.5 // Tăng độ dày viền
+                    }]
                 },
-                x: {
-                    ticks: { color: '#333' } // Màu chữ trục x
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {display: true, position: 'top'}
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {color: '#333'} // Màu chữ trục y
+                        },
+                        x: {
+                            ticks: {color: '#333'} // Màu chữ trục x
+                        }
+                    }
                 }
-            }
+            });
         }
-    });
-}
 
 
-// Hàm vẽ biểu đồ cột kề tỷ lệ nam nữ
-function drawGenderChart(labels, maleData, femaleData) {
-    const ctx = document.getElementById('genderPieChart');
+        // Hàm vẽ biểu đồ cột kề tỷ lệ nam nữ
+        function drawGenderChart(labels, maleData, femaleData) {
+            const ctx = document.getElementById('genderPieChart');
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Nam',
-                    data: maleData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)', // Màu xanh lam đậm cho Nam
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1.5
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Nam',
+                            data: maleData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)', // Màu xanh lam đậm cho Nam
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1.5
+                        },
+                        {
+                            label: 'Nữ',
+                            data: femaleData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)', // Màu đỏ đậm cho Nữ
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1.5
+                        }
+                    ]
                 },
-                {
-                    label: 'Nữ',
-                    data: femaleData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.8)', // Màu đỏ đậm cho Nữ
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1.5
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'top'}
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {color: '#333'} // Màu chữ trục y
+                        },
+                        x: {
+                            stacked: false, // Cần bật chế độ này để cột không chồng lên nhau
+                            ticks: {color: '#333'} // Màu chữ trục x
+                        }
+                    }
                 }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top' }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { color: '#333' } // Màu chữ trục y
-                },
-                x: {
-                    stacked: false, // Cần bật chế độ này để cột không chồng lên nhau
-                    ticks: { color: '#333' } // Màu chữ trục x
-                }
-            }
+            });
         }
-    });
-}
 
 
-    // Hàm cập nhật bảng
-    // Hàm cập nhật bảng số lượng học sinh theo lớp
-function updateStudentCountTable(data) {
-    const tableBody = document.getElementById('studentTableBody');
-    tableBody.innerHTML = ''; // Xóa dữ liệu cũ trong bảng
+        // Hàm cập nhật bảng
+        // Hàm cập nhật bảng số lượng học sinh theo lớp
+        function updateStudentCountTable(data) {
+            const tableBody = document.getElementById('studentTableBody');
+            tableBody.innerHTML = ''; // Xóa dữ liệu cũ trong bảng
 
-    data.forEach(item => {
-        const row = `
+            data.forEach(item => {
+                const row = `
             <tr>
                 <td>${item.ten_lop}</td>
                 <td>${item.total_students || 0}</td>
             </tr>
         `;
-        tableBody.innerHTML += row;
-    });
-}
+                tableBody.innerHTML += row;
+            });
+        }
 
 
-// Hàm cập nhật bảng tỷ lệ nam nữ
-function updateGenderTable(data) {
-const tableBody = document.getElementById('genderTableBody');
-tableBody.innerHTML = ''; // Xóa dữ liệu cũ trong bảng
+        // Hàm cập nhật bảng tỷ lệ nam nữ
+        function updateGenderTable(data) {
+            const tableBody = document.getElementById('genderTableBody');
+            tableBody.innerHTML = ''; // Xóa dữ liệu cũ trong bảng
 
-data.forEach(item => {
-    const row = `
+            data.forEach(item => {
+                const row = `
         <tr>
             <td>${item.ten_lop}</td>
             <td>${item.nam || 0}</td>
@@ -211,134 +211,134 @@ data.forEach(item => {
             <td>${(item.nam + item.nu) || 0}</td>
         </tr>
     `;
-    tableBody.innerHTML += row;
-});
-}
-
-
-    window.onload = function () {
-    // Lấy số lượng học sinh theo lớp
-    fetch('/api/student-counts')
-        .then(response => response.json())
-        .then(data => {
-            const labels = data.map(item => item.ten_lop);
-            const studentCounts = data.map(item => item.total_students);
-
-            drawChart(labels, studentCounts);  // Vẽ biểu đồ cột
-            updateStudentCountTable(data);    // Cập nhật bảng số lượng học sinh
-        })
-        .catch(error => console.error('Lỗi khi lấy dữ liệu:', error));
-
-    fetch('/api/grade-distribution')
-    .then(response => response.json())
-    .then(data => {
-        console.log('Dữ liệu điểm nhận được:', data);
-        if (data.error) {
-            console.error('Lỗi từ server:', data.error);
-            return;
+                tableBody.innerHTML += row;
+            });
         }
-        if (!Array.isArray(data) || data.length === 0) {
-            console.log('Không có dữ liệu điểm');
-            document.getElementById('gradeTableBody').innerHTML = `
+
+
+        window.onload = function () {
+            // Lấy số lượng học sinh theo lớp
+            fetch('/api/student-counts')
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(item => item.ten_lop);
+                    const studentCounts = data.map(item => item.total_students);
+
+                    drawChart(labels, studentCounts);  // Vẽ biểu đồ cột
+                    updateStudentCountTable(data);    // Cập nhật bảng số lượng học sinh
+                })
+                .catch(error => console.error('Lỗi khi lấy dữ liệu:', error));
+
+            fetch('/api/grade-distribution')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Dữ liệu điểm nhận được:', data);
+                    if (data.error) {
+                        console.error('Lỗi từ server:', data.error);
+                        return;
+                    }
+                    if (!Array.isArray(data) || data.length === 0) {
+                        console.log('Không có dữ liệu điểm');
+                        document.getElementById('gradeTableBody').innerHTML = `
                 <tr>
                     <td colspan="6" class="text-center">Không có dữ liệu điểm</td>
                 </tr>
             `;
-            return;
-        }
-        updateGradeTable(data);
-        drawGradeChart(data);
-    })
-    .catch(error => {
-        console.error('Lỗi khi lấy dữ liệu điểm:', error);
-        document.getElementById('gradeTableBody').innerHTML = `
+                        return;
+                    }
+                    updateGradeTable(data);
+                    drawGradeChart(data);
+                })
+                .catch(error => {
+                    console.error('Lỗi khi lấy dữ liệu điểm:', error);
+                    document.getElementById('gradeTableBody').innerHTML = `
             <tr>
                 <td colspan="6" class="text-center">Lỗi khi tải dữ liệu: ${error.message}</td>
             </tr>
         `;
-    });
+                });
 
-    // Lấy tỷ lệ giới tính
-    fetch('/api/gender-ratio')
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);  // Kiểm tra dữ liệu
-        updateGenderTable(data);  // Cập nhật bảng tỷ lệ giới tính
+            // Lấy tỷ lệ giới tính
+            fetch('/api/gender-ratio')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);  // Kiểm tra dữ liệu
+                    updateGenderTable(data);  // Cập nhật bảng tỷ lệ giới tính
 
-        // Chia dữ liệu thành hai mảng cho Nam và Nữ
-        const maleData = data.map(item => item.nam || 0);
-        const femaleData = data.map(item => item.nu || 0);
+                    // Chia dữ liệu thành hai mảng cho Nam và Nữ
+                    const maleData = data.map(item => item.nam || 0);
+                    const femaleData = data.map(item => item.nu || 0);
 
-        // Vẽ biểu đồ cột kề tỷ lệ nam nữ
-        drawGenderChart(data.map(item => item.ten_lop), maleData, femaleData);
-    })
-    .catch(error => console.error('Lỗi khi lấy tỷ lệ giới tính:', error));
+                    // Vẽ biểu đồ cột kề tỷ lệ nam nữ
+                    drawGenderChart(data.map(item => item.ten_lop), maleData, femaleData);
+                })
+                .catch(error => console.error('Lỗi khi lấy tỷ lệ giới tính:', error));
 
-}
-
-    function drawGradeChart(data) {
-    const ctx = document.getElementById('gradeChart');
-
-    // Tạo labels cho từng lớp và môn học
-    const labels = data.map(item => `${item.ten_lop} - ${item.mon_hoc}`);
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Giỏi',
-                    data: data.map(item => item.gioi),
-                    backgroundColor: 'rgba(75, 192, 192, 0.8)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Khá',
-                    data: data.map(item => item.kha),
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Trung bình',
-                    data: data.map(item => item.trung_binh),
-                    backgroundColor: 'rgba(255, 206, 86, 0.8)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Yếu',
-                    data: data.map(item => item.yeu),
-                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    stacked: true,
-                },
-                y: {
-                    stacked: true,
-                    beginAtZero: true
-                }
-            }
         }
-    });
-}
 
-function updateGradeTable(data) {
-    const tableBody = document.getElementById('gradeTableBody');
-    tableBody.innerHTML = '';
+        function drawGradeChart(data) {
+            const ctx = document.getElementById('gradeChart');
 
-    data.forEach(item => {
-        const total = item.gioi + item.kha + item.trung_binh + item.yeu;
-        const row = `
+            // Tạo labels cho từng lớp và môn học
+            const labels = data.map(item => `${item.ten_lop} - ${item.mon_hoc}`);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Giỏi',
+                            data: data.map(item => item.gioi),
+                            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Khá',
+                            data: data.map(item => item.kha),
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Trung bình',
+                            data: data.map(item => item.trung_binh),
+                            backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Yếu',
+                            data: data.map(item => item.yeu),
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateGradeTable(data) {
+            const tableBody = document.getElementById('gradeTableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(item => {
+                const total = item.gioi + item.kha + item.trung_binh + item.yeu;
+                const row = `
             <tr>
                 <td>${item.ten_lop}</td>
                 <td>${item.mon_hoc}</td>
@@ -349,11 +349,11 @@ function updateGradeTable(data) {
                 <td>${total}</td>
             </tr>
         `;
-        tableBody.innerHTML += row;
-    });
-}
+                tableBody.innerHTML += row;
+            });
+        }
 
 
-</script>
-
+    </script>
+</div>
 {% endblock %}

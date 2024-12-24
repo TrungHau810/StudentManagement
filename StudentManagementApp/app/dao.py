@@ -1,5 +1,5 @@
 import hashlib
-from sqlalchemy import inspect
+from sqlalchemy import inspect, func
 import random
 import unidecode
 from app import db, app
@@ -48,7 +48,6 @@ def get_lophoc_by_khoi(ten_khoi):
     return list_ten_lop
 
 
-
 def get_nam_hoc():
     ten_khoa = db.session.query(Khoa.ten_khoa).distinct().all()
     khoa = [row[0] for row in ten_khoa]
@@ -83,10 +82,9 @@ def get_id_lopkhoa_by_id_lop_khoa(id_khoa, id_lop):
     return list_id_lop_khoa
 
 
-def get_id_lop_khoa (id_khoa, id_lop):
+def get_id_lop_khoa(id_khoa, id_lop):
     id_lopkhoa = LopHocKhoa.query.filter_by(id_khoa=id_khoa, id_lop=id_lop).all()
     return int(id_lopkhoa[0].id)
-
 
 
 def get_list_id_hs_by_id_lopkhoa(id_lopkhoa):
@@ -96,6 +94,7 @@ def get_list_id_hs_by_id_lopkhoa(id_lopkhoa):
     list_id_hs = HocSinhLopHocKhoa.query.filter(HocSinhLopHocKhoa.id_lop_khoa.in_(id_lopkhoa)).all()
 
     return [item.id_hs for item in list_id_hs]
+
 
 def get_hs_info_by_id_hs(id_hs):
     hocsinh_list = HocSinh.query.filter(HocSinh.id.in_(id_hs)).all()
@@ -111,14 +110,13 @@ def get_hs_info_by_id_hs(id_hs):
     return hoc_sinh_info
 
 
-
 def get_all_lop():
     lop_hoc_list = LopHoc.query.with_entities(LopHoc.id, LopHoc.ten_lop).all()
     lophoc = [{
         "id": l.id,
         "ten_lop": l.ten_lop
     }
-    for l in lop_hoc_list
+        for l in lop_hoc_list
     ]
     return lophoc
 
@@ -142,7 +140,8 @@ def get_khoa_id(ten_nam, hoc_ky):
         print(f"Lỗi khi lấy ID của khóa: {e}")
         return None
 
-#lấy danh sách môn học
+
+# lấy danh sách môn học
 def get_all_subjects():
     """
     Lấy danh sách tất cả các môn học từ cơ sở dữ liệu.
@@ -182,6 +181,7 @@ def get_monhoc_by_lopkhoa(id_lop_khoa):
     except Exception as e:
         print(f"Error in get_monhoc_by_lopkhoa: {str(e)}")
         return []
+
 
 def get_diem_id(id_hs, id_mon_hoc):
     """
@@ -240,6 +240,7 @@ def get_monhoc_by_lopkhoa(id_lop_khoa):
         print(f"Lỗi trong get_monhoc_by_lopkhoa: {str(e)}")
         return []
 
+
 def get_students_with_scores(id_lopkhoa, mon_hoc_id, hoc_ky):
     """
     Lấy danh sách học sinh và điểm của họ cho một môn học cụ thể
@@ -247,33 +248,33 @@ def get_students_with_scores(id_lopkhoa, mon_hoc_id, hoc_ky):
     try:
         # Lấy danh sách học sinh trong lớp
         students = (db.session.query(HocSinh)
-                   .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)
-                   .filter(HocSinhLopHocKhoa.id_lop_khoa == id_lopkhoa)
-                   .all())
+                    .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)
+                    .filter(HocSinhLopHocKhoa.id_lop_khoa == id_lopkhoa)
+                    .all())
 
         result = []
         for student in students:
             # Lấy điểm của học sinh cho môn học này
             diem_15 = (Diem.query
-                      .filter_by(student_id=student.id,
-                               subject_id=mon_hoc_id,
-                               loai_diem=LoaiDiem.DIEMTX,
-                               hoc_ky=hoc_ky)
-                      .first())
+                       .filter_by(student_id=student.id,
+                                  subject_id=mon_hoc_id,
+                                  loai_diem=LoaiDiem.DIEMTX,
+                                  hoc_ky=hoc_ky)
+                       .first())
 
             diem_1t = (Diem.query
-                      .filter_by(student_id=student.id,
-                               subject_id=mon_hoc_id,
-                               loai_diem=LoaiDiem.DIEMGK,
-                               hoc_ky=hoc_ky)
-                      .first())
+                       .filter_by(student_id=student.id,
+                                  subject_id=mon_hoc_id,
+                                  loai_diem=LoaiDiem.DIEMGK,
+                                  hoc_ky=hoc_ky)
+                       .first())
 
             diem_ck = (Diem.query
-                      .filter_by(student_id=student.id,
-                               subject_id=mon_hoc_id,
-                               loai_diem=LoaiDiem.DIEMCK,
-                               hoc_ky=hoc_ky)
-                      .first())
+                       .filter_by(student_id=student.id,
+                                  subject_id=mon_hoc_id,
+                                  loai_diem=LoaiDiem.DIEMCK,
+                                  hoc_ky=hoc_ky)
+                       .first())
 
             student_data = {
                 'id': student.id,
@@ -361,6 +362,8 @@ def save_diem(student_id, subject_id, diem_value, loai_diem, hoc_ky):
         print(f"Error in save_diem: {str(e)}")  # Debug log
         db.session.rollback()
         raise e
+
+
 def save_or_update_diem(student_id, subject_id, diem_value, loai_diem, hoc_ky):
     """
     Lưu hoặc cập nhật điểm trong bảng Diem
@@ -368,13 +371,13 @@ def save_or_update_diem(student_id, subject_id, diem_value, loai_diem, hoc_ky):
     try:
         # Tìm điểm đã tồn tại với lần cao nhất
         existing_diem = (Diem.query
-                        .filter_by(
-                            student_id=student_id,
-                            subject_id=subject_id,
-                            loai_diem=loai_diem,
-                            hoc_ky=hoc_ky)
-                        .order_by(Diem.lan.desc())
-                        .first())
+                         .filter_by(
+            student_id=student_id,
+            subject_id=subject_id,
+            loai_diem=loai_diem,
+            hoc_ky=hoc_ky)
+                         .order_by(Diem.lan.desc())
+                         .first())
 
         if existing_diem:
             # Tạo bản ghi mới với lần tăng thêm 1
@@ -408,16 +411,17 @@ def save_or_update_diem(student_id, subject_id, diem_value, loai_diem, hoc_ky):
         print(f"Lỗi khi lưu/cập nhật điểm: {str(e)}")
         raise e
 
+
 def get_student_scores(lop_id, mon_hoc_id, hoc_ky):
     """
     Lấy điểm của học sinh theo lớp, môn học và học kỳ
     """
     try:
         # Lấy danh sách học sinh trong lớp
-        students = db.session.query(HocSinh)\
-            .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)\
-            .join(LopHocKhoa, HocSinhLopHocKhoa.id_lop_khoa == LopHocKhoa.id)\
-            .filter(LopHocKhoa.id_lop == lop_id)\
+        students = db.session.query(HocSinh) \
+            .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs) \
+            .join(LopHocKhoa, HocSinhLopHocKhoa.id_lop_khoa == LopHocKhoa.id) \
+            .filter(LopHocKhoa.id_lop == lop_id) \
             .all()
 
         result = []
@@ -458,7 +462,8 @@ def get_student_scores(lop_id, mon_hoc_id, hoc_ky):
         print(f"Error in get_student_scores: {str(e)}")
         raise e
 
-#vẽ biểu đồ
+
+# vẽ biểu đồ
 def get_students_count_per_class():
     results = (
         db.session.query(
@@ -595,27 +600,29 @@ def get_grade_distribution():
         print("\nStack trace:")
         print(traceback.format_exc())
         return []
+
+
 if __name__ == "__main__":
     with app.app_context():
-        ten_nam = "2024-2025"
-        hoc_ky = "HK1"
-        id_lop = 1
+        pass
+        # ten_nam = "2024-2025"
+        # hoc_ky = "HK1"
+        # id_lop = 1
+        #
+        # khoa_id = get_khoa_id(ten_nam, hoc_ky)
+        # print(khoa_id)
+        # print(type(khoa_id))
+        #
+        # id_lop_khoa= get_id_lop_khoa(khoa_id, id_lop)
+        # print(type(id_lop_khoa))
+        # print(f"id lop khoa:{id_lop_khoa}")
+        #
+        # id_hocsinh = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
+        # print(f"id hoc sinh: {id_hocsinh}")
+        #
+        # subjects = get_all_subjects()
+        # print(subjects)
 
+        # test lấy thuộc tính điểm
 
-
-
-        khoa_id = get_khoa_id(ten_nam, hoc_ky)
-        print(khoa_id)
-        print(type(khoa_id))
-
-        id_lop_khoa= get_id_lop_khoa(khoa_id, id_lop)
-        print(type(id_lop_khoa))
-        print(f"id lop khoa:{id_lop_khoa}")
-
-        id_hocsinh = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
-        print(f"id hoc sinh: {id_hocsinh}")
-
-        subjects = get_all_subjects()
-        print(subjects)
-
-        #test lấy thuộc tính điểm
+        # print(get_class_report())
