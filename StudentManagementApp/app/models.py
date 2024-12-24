@@ -173,27 +173,65 @@ class GiaoVienMonHocLopHocKhoa(db.Model):
 #     with open(json_file, encoding='utf-8') as file:
 #         return json.load(file)
 
+# def read_json_file(json_file):
+#     try:
+#         current_dir = os.path.dirname(os.path.abspath(__file__))
+#         full_path = os.path.join(current_dir, 'data', json_file)
+#         print(f"Reading from: {full_path}")  # Debug đường dẫn
+#
+#         with open(full_path, encoding='utf-8') as file:
+#             return json.load(file)
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return None
+#
+# def load_user_to_db(json_file):
+#     data = read_json_file(json_file)
+#     for item in data:
+#         user = User(username=item['username'],
+#                     password=str(hashlib.md5(item['password'].encode('utf-8')).hexdigest()),
+#                     avatar=item['avatar'],
+#                     user_role=item['user_role'])
+#         db.session.add(user)
+#     db.session.commit()
+
 def read_json_file(json_file):
     try:
+        # Lấy đường dẫn thư mục hiện tại (app)
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        full_path = os.path.join(current_dir, 'data', json_file)
-        print(f"Reading from: {full_path}")  # Debug đường dẫn
+
+        # Tạo đường dẫn đến file json
+        full_path = os.path.join(current_dir, 'data', os.path.basename(json_file))
+        print(f"Reading from: {full_path}")
 
         with open(full_path, encoding='utf-8') as file:
-            return json.load(file)
+            data = json.load(file)
+            print(f"Data loaded successfully: {data}")  # Debug log
+            return data
+
     except Exception as e:
         print(f"Error: {e}")
         return None
 
+
 def load_user_to_db(json_file):
     data = read_json_file(json_file)
-    for item in data:
-        user = User(username=item['username'],
-                    password=str(hashlib.md5(item['password'].encode('utf-8')).hexdigest()),
-                    avatar=item['avatar'],
-                    user_role=item['user_role'])
-        db.session.add(user)
-    db.session.commit()
+    if data is None:
+        print("Failed to load data from json file")
+        return
+
+    try:
+        for item in data['users']:  # Assuming data has 'users' key
+            user = User(username=item['username'],
+                        password=str(hashlib.md5(item['password'].encode('utf-8')).hexdigest()),
+                        avatar=item['avatar'],
+                        user_role=item['user_role'])
+            db.session.add(user)
+        db.session.commit()
+        print("Users loaded successfully")
+    except Exception as e:
+        print(f"Error loading users: {e}")
+        db.session.rollback()
 
 
 def load_hs_to_db(json_file):
