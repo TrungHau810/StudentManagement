@@ -1,5 +1,6 @@
 import json
 import random
+import os
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime
@@ -168,10 +169,21 @@ class GiaoVienMonHocLopHocKhoa(db.Model):
 
 
 # Open file json
-def read_json_file(json_file):
-    with open(json_file, encoding='utf-8') as file:
-        return json.load(file)
+# def read_json_file(json_file):
+#     with open(json_file, encoding='utf-8') as file:
+#         return json.load(file)
 
+def read_json_file(json_file):
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        full_path = os.path.join(current_dir, 'data', json_file)
+        print(f"Reading from: {full_path}")  # Debug đường dẫn
+
+        with open(full_path, encoding='utf-8') as file:
+            return json.load(file)
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
 def load_user_to_db(json_file):
     data = read_json_file(json_file)
