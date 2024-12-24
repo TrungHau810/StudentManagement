@@ -841,16 +841,7 @@ def gender_ratio_api():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/grade-distribution', methods=['GET'])
-def grade_distribution_api():
-    try:
-        print("Đang gọi API grade-distribution...")
-        data = dao.get_grade_distribution()
-        print("Dữ liệu trả về từ DAO:", data)
-        return jsonify(data)
-    except Exception as e:
-        print(f"Lỗi trong API grade-distribution: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/api/report', methods=['GET'])
@@ -863,7 +854,30 @@ def get_report():
     report_data = dao.get_class_report(subject_id, semester, year)
     return jsonify(report_data)
 
+@app.route('/api/grade-distribution', methods=['GET'])
+def grade_distribution_api():
+    try:
+        print("\n=== ĐANG GỌI API GRADE-DISTRIBUTION ===")
+        data = dao.get_grade_distribution()
+        print(f"Số lượng dữ liệu trả về: {len(data)}")
+        print("Dữ liệu:", data)
+        return jsonify(data)
+    except Exception as e:
+        print(f"\n=== LỖI TRONG API GRADE-DISTRIBUTION ===")
+        print(f"Loại lỗi: {e.__class__.__name__}")
+        print(f"Chi tiết: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
+@app.route('/api/check-scores', methods=['GET'])
+def check_scores_api():
+    try:
+        has_scores = dao.check_diem_data()
+        return jsonify({
+            'has_scores': has_scores,
+            'message': 'Có dữ liệu điểm trong CSDL' if has_scores else 'Không có dữ liệu điểm'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 if __name__ == "__main__":
     with app.app_context():
         from app import admin

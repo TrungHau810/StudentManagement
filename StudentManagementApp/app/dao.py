@@ -505,102 +505,58 @@ def get_gender_ratio_by_class(class_id):
 
 def get_grade_distribution():
     try:
-        print("\n=== BẮT ĐẦU LẤY PHÂN PHỐI ĐIỂM ===")
+        print("\n=== BẮT ĐẦU LẤY ĐIỂM TRUNG BÌNH TỪNG LỚP ===")
 
-        # 1. Kiểm tra dữ liệu trong CSDL
-        total_scores = db.session.query(Diem).count()
-        print(f"Tổng số điểm trong CSDL: {total_scores}")
+        # Lấy tất cả các lớp trước
+        all_classes = LopHoc.query.all()
+        data = []
 
-        # Kiểm tra chi tiết điểm mẫu
-        print("\nMẫu điểm trong CSDL:")
-        sample_scores = Diem.query.limit(5).all()
-        for score in sample_scores:
-            print(f"- Học sinh {score.student_id}, Môn {score.subject_id}: "
-                  f"{score.diem} điểm, Loại: {score.loai_diem.value}, "
-                  f"Lần: {score.lan}, Kỳ: {score.hoc_ky.value}")
+        for lop in all_classes:
+            print(f"\nĐang xử lý lớp: {lop.ten_lop}")
 
-        # 2. Lấy điểm cuối kỳ mới nhất của mỗi học sinh
-        latest_scores = db.session.query(
-            Diem.student_id,
-            Diem.subject_id,
-            db.func.max(Diem.lan).label('max_lan')
-        ).filter(
-            Diem.loai_diem == LoaiDiem.DIEMCK
-        ).group_by(
-            Diem.student_id,
-            Diem.subject_id
-        ).subquery()
+            # Lấy điểm trung bình của lớp
+            avg_score = db.session.query(
+                func.avg(Diem.diem).label('diem_trung_binh')
+            ).join(
+                HocSinhLopHocKhoa, HocSinhLopHocKhoa.id_hs == Diem.student_id
+            ).join(
+                LopHocKhoa, LopHocKhoa.id == HocSinhLopHocKhoa.id_lop_khoa
+            ).filter(
+                LopHocKhoa.id_lop == lop.id
+            ).scalar()
 
-        # 3. Query chính để lấy phân phối điểm
-        results = db.session.query(
-            LopHoc.ten_lop,
-            MonHoc.ten_mon_hoc,
-            db.func.count(db.case(
-                [(Diem.diem >= 8.0, 1)],
-                else_=None
-            )).label('gioi'),
-            db.func.count(db.case(
-                [(db.and_(Diem.diem >= 6.5, Diem.diem < 8.0), 1)],
-                else_=None
-            )).label('kha'),
-            db.func.count(db.case(
-                [(db.and_(Diem.diem >= 5.0, Diem.diem < 6.5), 1)],
-                else_=None
-            )).label('trung_binh'),
-            db.func.count(db.case(
-                [(Diem.diem < 5.0, 1)],
-                else_=None
-            )).label('yeu')
-        ).select_from(Diem) \
-            .join(latest_scores, db.and_(
-            Diem.student_id == latest_scores.c.student_id,
-            Diem.subject_id == latest_scores.c.subject_id,
-            Diem.lan == latest_scores.c.max_lan
-        )) \
-            .join(MonHoc, MonHoc.id == Diem.subject_id) \
-            .join(HocSinhLopHocKhoa, HocSinhLopHocKhoa.id_hs == Diem.student_id) \
-            .join(LopHocKhoa, LopHocKhoa.id == HocSinhLopHocKhoa.id_lop_khoa) \
-            .join(LopHoc, LopHoc.id == LopHocKhoa.id_lop) \
-            .filter(Diem.loai_diem == LoaiDiem.DIEMCK) \
-            .group_by(
-            LopHoc.ten_lop,
-            MonHoc.ten_mon_hoc
-        ).all()
+            # Thêm vào kết quả kể cả khi chưa có điểm
+            item = {
+                'ten_lop': lop.ten_lop,
+                'diem_trung_binh': round(float(avg_score), 2) if avg_score is not None else 0
+            }
+            data.append(item)
+            print(f"Lớp {lop.ten_lop}: {item['diem_trung_binh']}")
 
-        print(f"\nSố kết quả truy vấn: {len(results)}")
-
-        # 4. Chuyển đổi kết quả thành JSON
-        data = [{
-            'ten_lop': r.ten_lop,
-            'mon_hoc': r.ten_mon_hoc,
-            'gioi': int(r.gioi or 0),
-            'kha': int(r.kha or 0),
-            'trung_binh': int(r.trung_binh or 0),
-            'yeu': int(r.yeu or 0)
-        } for r in results]
-
-        # 5. In kết quả chi tiết
-        print("\nKết quả phân phối điểm:")
-        for d in data:
-            print(f"\nLớp {d['ten_lop']} - Môn {d['mon_hoc']}:")
-            print(f"  Giỏi: {d['gioi']}")
-            print(f"  Khá: {d['kha']}")
-            print(f"  Trung bình: {d['trung_binh']}")
-            print(f"  Yếu: {d['yeu']}")
-            total = d['gioi'] + d['kha'] + d['trung_binh'] + d['yeu']
-            print(f"  Tổng số học sinh: {total}")
-
+        print(f"\nTổng số lớp: {len(data)}")
         return data
 
     except Exception as e:
-        print("\n=== LỖI KHI LẤY PHÂN PHỐI ĐIỂM ===")
-        print(f"Loại lỗi: {e.__class__.__name__}")
-        print(f"Chi tiết: {str(e)}")
+        print(f"\n=== LỖI: {str(e)} ===")
         import traceback
-        print("\nStack trace:")
         print(traceback.format_exc())
         return []
+def check_diem_data():
+    try:
+        # Đếm tổng số điểm
+        total_scores = db.session.query(Diem).count()
+        print(f"\nTổng số điểm trong CSDL: {total_scores}")
 
+        # Lấy mẫu một vài điểm
+        sample_scores = Diem.query.limit(5).all()
+        print("\nMẫu điểm:")
+        for score in sample_scores:
+            print(f"Học sinh {score.student_id}: {score.diem} ({score.loai_diem.value})")
+
+        return total_scores > 0
+    except Exception as e:
+        print(f"Lỗi khi kiểm tra dữ liệu điểm: {str(e)}")
+        return False
 
 if __name__ == "__main__":
     with app.app_context():
