@@ -114,7 +114,7 @@ def add_student():
         age_now = current_date.year - ngay_sinh.year - (
                 (current_date.month, current_date.day) < (ngay_sinh.month, ngay_sinh.day))
 
-        if age_now >= 15:
+        if age_now >= 15 and age_now <= 20:
             dao.add_stu(ho_ten=ho_ten,
                         gioi_tinh=gioi_tinh,
                         ngay_sinh=ngay_sinh,
@@ -125,7 +125,7 @@ def add_student():
             # dao.add_hs_to_lop(id_hs=hs, id_lop=dao.random_id_lop())
             message = "Thêm học sinh thành công"
         else:
-            message = "Thêm học sinh thất bại, học sinh phải đủ 15 tuổi"
+            message = "Thêm học sinh thất bại, học sinh phải đủ 15 đến 20 tuổi"
 
         return render_template('student_admissions.html', message=message)
 

@@ -91,6 +91,7 @@ class StatsView(MyView):
         return self.render('admin/stats.html')
 
 
+
 admin.add_view(UserView(User, db.session))
 admin.add_view(MonHocView(MonHoc, db.session, name="Môn học"))
 admin.add_view(ModelView(LopHoc, db.session, name="Lớp học"))
