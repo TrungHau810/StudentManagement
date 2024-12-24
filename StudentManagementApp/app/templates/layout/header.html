@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg bg-primary navbar-dark p-3">
     <div class="container-fluid">
         <!-- Logo hoặc Tiêu đề -->
-        <a class="navbar-brand fw-bold" href="/">Student Management</a>
+        <a class="navbar-brand fw-bold" href="/login">Student Management</a>
 
         <!-- Nút Toggle cho Mobile -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -14,7 +14,7 @@
             <!-- Menu trái -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/">Wellcome</a>
+                    <a class="nav-link active" aria-current="page" href="/login">Wellcome</a>
                 </li>
                 {% if current_user.is_authenticated %}
                 {% if current_user.user_role.value == 4 %}
@@ -59,10 +59,6 @@
                 </li>
                 <li class="nav-link text-light">
                     <a class="nav-link text-light bg-danger  border border-danger rounded px-3" href="/logout">Đăng xuất</a>
-                </li>
-                {% else %}
-                <li class="nav-link text-light">
-                    <a class="nav-link text-light bg-success  border border-success rounded px-3" href="/login">Đăng nhập</a>
                 </li>
                 {% endif %}
             </ul>
