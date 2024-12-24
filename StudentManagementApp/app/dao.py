@@ -1,4 +1,5 @@
 import hashlib
+from sqlalchemy import inspect
 import random
 import unidecode
 from app import db, app
@@ -141,7 +142,321 @@ def get_khoa_id(ten_nam, hoc_ky):
         print(f"Lỗi khi lấy ID của khóa: {e}")
         return None
 
+#lấy danh sách môn học
+def get_all_subjects():
+    """
+    Lấy danh sách tất cả các môn học từ cơ sở dữ liệu.
 
+    Returns:
+        List[dict]: Danh sách môn học dưới dạng dictionary, mỗi phần tử có cấu trúc:
+                    {
+                        'id': int,
+                        'ten_mon_hoc': str
+                    }
+    """
+    subjects = MonHoc.query.all()
+    result = [{'id': subject.id, 'ten_mon_hoc': subject.ten_mon_hoc} for subject in subjects]
+    return result
+
+
+def get_monhoc_by_lopkhoa(id_lop_khoa):
+    """
+    Lấy danh sách môn học của một lớp trong một khóa học
+    """
+    try:
+        # Trước tiên thử lấy các môn học đã được phân công
+        monhoc_list = (db.session.query(MonHoc)
+                       .join(GiaoVienMonHocLopHocKhoa, MonHoc.id == GiaoVienMonHocLopHocKhoa.id_mon_hoc)
+                       .filter(GiaoVienMonHocLopHocKhoa.id_lop_khoa == id_lop_khoa)
+                       .distinct()
+                       .all())
+
+        # Nếu chưa có môn học nào được phân công, lấy tất cả môn học
+        if not monhoc_list:
+            monhoc_list = MonHoc.query.all()
+
+        return [{
+            'id': mon.id,
+            'ten_mon_hoc': mon.ten_mon_hoc
+        } for mon in monhoc_list]
+    except Exception as e:
+        print(f"Error in get_monhoc_by_lopkhoa: {str(e)}")
+        return []
+
+def get_diem_id(id_hs, id_mon_hoc):
+    """
+    Lấy ID của điểm dựa vào ID học sinh và ID môn học.
+
+    Args:
+        id_hs (int): ID của học sinh
+        id_mon_hoc (int): ID của môn học
+
+    Returns:
+        int: ID của điểm hoặc None nếu không tìm thấy
+    """
+    try:
+        diem = Diem.query.filter_by(id_hs=id_hs, id_mon_hoc=id_mon_hoc).first()
+        return diem.id if diem else None
+    except Exception as e:
+        print(f"Lỗi khi lấy ID điểm: {e}")
+        return None
+
+
+def get_monhoc_by_lopkhoa(id_lop_khoa):
+    """
+    Lấy danh sách môn học của một lớp trong một khóa học
+    """
+    try:
+        print(f"Đang tìm môn học cho lớp khóa ID: {id_lop_khoa}")
+
+        # Kiểm tra phân công giáo viên
+        gv_monhoc = (db.session.query(GiaoVienMonHocLopHocKhoa)
+                     .filter(GiaoVienMonHocLopHocKhoa.id_lop_khoa == id_lop_khoa)
+                     .all())
+
+        print(f"Số lượng phân công giáo viên: {len(gv_monhoc)}")
+
+        if gv_monhoc:
+            # Nếu có phân công, lấy môn học theo phân công
+            monhoc_list = (db.session.query(MonHoc)
+                           .join(GiaoVienMonHocLopHocKhoa, MonHoc.id == GiaoVienMonHocLopHocKhoa.id_mon_hoc)
+                           .filter(GiaoVienMonHocLopHocKhoa.id_lop_khoa == id_lop_khoa)
+                           .distinct()
+                           .all())
+        else:
+            # Nếu chưa có phân công, lấy tất cả môn học
+            print("Không có phân công giáo viên, lấy tất cả môn học")
+            monhoc_list = MonHoc.query.all()
+
+        result = [{
+            'id': mon.id,
+            'ten_mon_hoc': mon.ten_mon_hoc
+        } for mon in monhoc_list]
+
+        print(f"Danh sách môn học: {result}")
+        return result
+
+    except Exception as e:
+        print(f"Lỗi trong get_monhoc_by_lopkhoa: {str(e)}")
+        return []
+
+def get_students_with_scores(id_lopkhoa, mon_hoc_id, hoc_ky):
+    """
+    Lấy danh sách học sinh và điểm của họ cho một môn học cụ thể
+    """
+    try:
+        # Lấy danh sách học sinh trong lớp
+        students = (db.session.query(HocSinh)
+                   .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)
+                   .filter(HocSinhLopHocKhoa.id_lop_khoa == id_lopkhoa)
+                   .all())
+
+        result = []
+        for student in students:
+            # Lấy điểm của học sinh cho môn học này
+            diem_15 = (Diem.query
+                      .filter_by(student_id=student.id,
+                               subject_id=mon_hoc_id,
+                               loai_diem=LoaiDiem.DIEMTX,
+                               hoc_ky=hoc_ky)
+                      .first())
+
+            diem_1t = (Diem.query
+                      .filter_by(student_id=student.id,
+                               subject_id=mon_hoc_id,
+                               loai_diem=LoaiDiem.DIEMGK,
+                               hoc_ky=hoc_ky)
+                      .first())
+
+            diem_ck = (Diem.query
+                      .filter_by(student_id=student.id,
+                               subject_id=mon_hoc_id,
+                               loai_diem=LoaiDiem.DIEMCK,
+                               hoc_ky=hoc_ky)
+                      .first())
+
+            student_data = {
+                'id': student.id,
+                'ho_ten': student.ho_ten,
+                'diem_tx': diem_15.diem if diem_15 else None,
+                'diem_gk': diem_1t.diem if diem_1t else None,
+                'diem_ck': diem_ck.diem if diem_ck else None
+            }
+            result.append(student_data)
+
+        return result
+
+    except Exception as e:
+        print(f"Error in get_students_with_scores: {str(e)}")
+        return []
+
+
+def save_student_scores(scores, mon_hoc_id, hoc_ky):
+    """
+    Lưu điểm của học sinh vào bảng Diem
+    """
+    try:
+        print(f"Đang lưu điểm: {scores}")
+        for score in scores:
+            student_id = score.get('student_id')
+            diem_tx = score.get('diem_tx')
+            diem_gk = score.get('diem_gk')
+            diem_ck = score.get('diem_ck')
+
+            # Kiểm tra và lưu từng loại điểm
+            if diem_tx is not None:
+                save_or_update_diem(student_id, mon_hoc_id, diem_tx, LoaiDiem.DIEMTX, hoc_ky)
+
+            if diem_gk is not None:
+                save_or_update_diem(student_id, mon_hoc_id, diem_gk, LoaiDiem.DIEMGK, hoc_ky)
+
+            if diem_ck is not None:
+                save_or_update_diem(student_id, mon_hoc_id, diem_ck, LoaiDiem.DIEMCK, hoc_ky)
+
+        db.session.commit()
+        print("Lưu điểm thành công")
+        return True
+
+    except Exception as e:
+        print(f"Lỗi khi lưu điểm: {str(e)}")
+        db.session.rollback()
+        raise e
+
+
+def save_diem(student_id, subject_id, diem_value, loai_diem, hoc_ky):
+    """
+    Lưu điểm mới vào database
+    """
+    try:
+        # Kiểm tra điểm đã tồn tại
+        existing_diem = Diem.query.filter_by(
+            student_id=student_id,
+            subject_id=subject_id,
+            loai_diem=loai_diem,
+            hoc_ky=hoc_ky
+        ).order_by(Diem.lan.desc()).first()
+
+        # Xác định lần nhập điểm
+        lan = 1 if not existing_diem else existing_diem.lan + 1
+
+        # Tạo bản ghi điểm mới
+        new_diem = Diem(
+            student_id=student_id,
+            subject_id=subject_id,
+            diem=diem_value,
+            lan=lan,
+            loai_diem=loai_diem,
+            hoc_ky=hoc_ky
+        )
+
+        print(f"Saving score: Student={student_id}, Subject={subject_id}, "
+              f"Score={diem_value}, Type={loai_diem}, Semester={hoc_ky}")  # Debug log
+
+        db.session.add(new_diem)
+        db.session.commit()
+
+        return True
+
+    except Exception as e:
+        print(f"Error in save_diem: {str(e)}")  # Debug log
+        db.session.rollback()
+        raise e
+def save_or_update_diem(student_id, subject_id, diem_value, loai_diem, hoc_ky):
+    """
+    Lưu hoặc cập nhật điểm trong bảng Diem
+    """
+    try:
+        # Tìm điểm đã tồn tại với lần cao nhất
+        existing_diem = (Diem.query
+                        .filter_by(
+                            student_id=student_id,
+                            subject_id=subject_id,
+                            loai_diem=loai_diem,
+                            hoc_ky=hoc_ky)
+                        .order_by(Diem.lan.desc())
+                        .first())
+
+        if existing_diem:
+            # Tạo bản ghi mới với lần tăng thêm 1
+            new_lan = existing_diem.lan + 1
+            new_diem = Diem(
+                student_id=student_id,
+                subject_id=subject_id,
+                diem=diem_value,
+                lan=new_lan,
+                loai_diem=loai_diem,
+                hoc_ky=hoc_ky
+            )
+            db.session.add(new_diem)
+            print(f"Thêm điểm mới lần {new_lan}: Học sinh {student_id}, Môn {subject_id}, "
+                  f"Loại {loai_diem}, Điểm {diem_value}")
+        else:
+            # Tạo mới điểm với lần = 1
+            new_diem = Diem(
+                student_id=student_id,
+                subject_id=subject_id,
+                diem=diem_value,
+                lan=1,
+                loai_diem=loai_diem,
+                hoc_ky=hoc_ky
+            )
+            db.session.add(new_diem)
+            print(f"Thêm điểm mới lần 1: Học sinh {student_id}, Môn {subject_id}, "
+                  f"Loại {loai_diem}, Điểm {diem_value}")
+
+    except Exception as e:
+        print(f"Lỗi khi lưu/cập nhật điểm: {str(e)}")
+        raise e
+
+def get_student_scores(lop_id, mon_hoc_id, hoc_ky):
+    """
+    Lấy điểm của học sinh theo lớp, môn học và học kỳ
+    """
+    try:
+        # Lấy danh sách học sinh trong lớp
+        students = db.session.query(HocSinh)\
+            .join(HocSinhLopHocKhoa, HocSinh.id == HocSinhLopHocKhoa.id_hs)\
+            .join(LopHocKhoa, HocSinhLopHocKhoa.id_lop_khoa == LopHocKhoa.id)\
+            .filter(LopHocKhoa.id_lop == lop_id)\
+            .all()
+
+        result = []
+        for student in students:
+            # Lấy điểm của từng loại
+            diem_tx = Diem.query.filter_by(
+                student_id=student.id,
+                subject_id=mon_hoc_id,
+                loai_diem=LoaiDiem.DIEMTX,
+                hoc_ky=hoc_ky
+            ).order_by(Diem.lan.desc()).first()
+
+            diem_gk = Diem.query.filter_by(
+                student_id=student.id,
+                subject_id=mon_hoc_id,
+                loai_diem=LoaiDiem.DIEMGK,
+                hoc_ky=hoc_ky
+            ).order_by(Diem.lan.desc()).first()
+
+            diem_ck = Diem.query.filter_by(
+                student_id=student.id,
+                subject_id=mon_hoc_id,
+                loai_diem=LoaiDiem.DIEMCK,
+                hoc_ky=hoc_ky
+            ).order_by(Diem.lan.desc()).first()
+
+            result.append({
+                'ma_hs': student.id,
+                'ho_ten': student.ho_ten,
+                'diem_tx': diem_tx.diem if diem_tx else None,
+                'diem_gk': diem_gk.diem if diem_gk else None,
+                'diem_ck': diem_ck.diem if diem_ck else None
+            })
+
+        return result
+
+    except Exception as e:
+        print(f"Error in get_student_scores: {str(e)}")
+        raise e
 if __name__ == "__main__":
     with app.app_context():
         ten_nam = "2024-2025"
@@ -161,3 +476,8 @@ if __name__ == "__main__":
 
         id_hocsinh = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
         print(f"id hoc sinh: {id_hocsinh}")
+
+        subjects = get_all_subjects()
+        print(subjects)
+
+        #test lấy thuộc tính điểm

@@ -10,7 +10,7 @@ from wtforms import StringField, SelectField, SubmitField, BooleanField
 from wtforms.validators import DataRequired
 
 from app.dao import get_id_khoa_by_ten_khoa, get_id_lop_by_ten_lop, get_id_lopkhoa_by_id_lop_khoa, \
-    get_list_id_hs_by_id_lopkhoa, get_hs_info_by_id_hs, get_all_lop
+    get_list_id_hs_by_id_lopkhoa, get_hs_info_by_id_hs, get_all_lop, get_all_subjects
 from app.models import UserRole, Khoi, LopHoc
 from datetime import datetime
 from app.models import (User, HocSinh, UserRole,
@@ -21,13 +21,9 @@ from app.models import (User, HocSinh, UserRole,
                         HocKy, Khoi, LoaiDiem)
 
 
-
-
-
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 
 class ClassListForm(FlaskForm):
@@ -41,6 +37,7 @@ class ClassListForm(FlaskForm):
 class AddStudentToClassForm(FlaskForm):
     submit = SubmitField('Thêm vào lớp')
 
+
 @app.route("//create-class-list", methods=['GET', 'POST'])
 def class_list_view():
     form = ClassListForm()
@@ -48,7 +45,6 @@ def class_list_view():
     khoi = Khoi
     nam_hoc = dao.get_nam_hoc()
     danh_sach_lop = dao.get_all_lop()
-
 
     form.nam_hoc.choices = [('', '-- Chọn năm --')] + [(nh, nh) for nh in nam_hoc]
     form.khoi.choices = [('', '-- Chọn khối --')] + [(k.name, k.value) for k in khoi]
@@ -60,14 +56,15 @@ def class_list_view():
         selected_khoi = form.khoi.data
         selected_lop_id = form.lop.data
 
-
-        return redirect(url_for('class_list_view', nam_hoc=selected_nam_hoc, khoi=selected_khoi, lop_id=selected_lop_id))
+        return redirect(
+            url_for('class_list_view', nam_hoc=selected_nam_hoc, khoi=selected_khoi, lop_id=selected_lop_id))
 
     if form_add.validate_on_submit():
-
         pass
 
-    return render_template('class_list.html', form=form, form_add=form_add, nam_hoc=nam_hoc, khoi=khoi, danh_sach_lop=danh_sach_lop)
+    return render_template('class_list.html', form=form, form_add=form_add, nam_hoc=nam_hoc, khoi=khoi,
+                           danh_sach_lop=danh_sach_lop)
+
 
 # Login
 @app.route("/login", methods=['get', 'post'])
@@ -152,6 +149,7 @@ def get_namhoc():
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
 
+
 @app.route('/api/get_hocky_by_namhoc', methods=['POST'])
 def get_hocky():
     try:
@@ -187,43 +185,131 @@ def get_lop():
         return jsonify({'error': str(ex)}), 400
 
 
-@app.route('/api/get_students_and_subjects', methods=['POST'])
-def get_students_and_subjects():
+@app.route('/api/get_all_subjects', methods=['POST'])
+def get_mon():
+    try:
+        data = request.get_json()
+        nam_hoc = data.get('nam_hoc')
+        hoc_ky = data.get('hoc_ky')
+        lop_id = data.get('lop')
+        # Lấy id khóa từ năm học và học kỳ
+        khoa_id = dao.get_khoa_id(nam_hoc, hoc_ky)
+
+        # Lấy id_lop_khoa
+        id_lop_khoa = dao.get_id_lop_khoa(khoa_id, lop_id)
+        monhoc_list = (db.session.query(MonHoc)
+                       .join(GiaoVienMonHocLopHocKhoa, MonHoc.id == GiaoVienMonHocLopHocKhoa.id_mon_hoc)
+                       .filter(GiaoVienMonHocLopHocKhoa.id_lop_khoa == id_lop_khoa)
+                       .distinct()
+                       .all())
+
+        if not monhoc_list:
+            monhoc_list = MonHoc.query.all()
+
+        result = [{
+            'id': mon.id,
+            'ten_mon_hoc': mon.ten_mon_hoc
+        } for mon in monhoc_list]
+        return jsonify(result)
+    except Exception as ex:
+        print(f"Error in get_mon: {str(ex)}")
+    return jsonify({'error': str(ex)}), 400
+
+
+@app.route('/api/get_monhoc_by_lop', methods=['POST'])
+def get_monhoc_by_lop():
     try:
         data = request.get_json()
         lop_id = data.get('lop_id')
-        nam_hoc = data.get("namHoc")
-        hoc_ky = data.get('hocKy')
-
-        id_khoa = dao.get_khoa_id(nam_hoc, hoc_ky)  # Correctly using dao.get_khoa_id
-        id_lop_khoa_list = get_id_lopkhoa_by_id_lop_khoa([id_khoa], lop_id)  # Use the corrected function
-        hs_id = get_list_id_hs_by_id_lopkhoa(id_lop_khoa_list[0]) # Get the first id_lop_khoa
-        hs_info = get_hs_info_by_id_hs(hs_id)  # Get student info
-
-        return jsonify(hs_info)  # Return the student info
-
-    except Exception as ex:
-        return jsonify({'error': str(ex)}), 400
-@app.route('/api/save_scores', methods=['POST'])
-def save_scores():
-    try:
-        data = request.get_json()
-        scores = data.get('scores')
         hoc_ky = data.get('hoc_ky')
+        nam_hoc = data.get('nam_hoc')
 
-        for score in scores:
-            diem = Diem(
-                student_id=score['student_id'],
-                subject_id=score['subject_id'],
-                diem=score['diem'],
-                hoc_ky=hoc_ky
-            )
-            db.session.add(diem)
-        db.session.commit()
 
-        return jsonify({'message': 'Lưu điểm thành công'})
+        khoa_id = dao.get_khoa_id(nam_hoc, hoc_ky)
+        if not khoa_id:
+            return jsonify({'error': 'Không tìm thấy khóa học'}), 404
+
+        id_lop_khoa = dao.get_id_lop_khoa(khoa_id, lop_id)
+        if not id_lop_khoa:
+            return jsonify({'error': 'Không tìm thấy lớp trong khóa học này'}), 404
+
+        mon_hoc = dao.get_monhoc_by_lopkhoa(id_lop_khoa)
+
+        return jsonify({'mon_hoc': mon_hoc})
     except Exception as ex:
+        print(f"Error in get_monhoc_by_lop: {str(ex)}")
         return jsonify({'error': str(ex)}), 400
+
+
+@app.route('/api/test_data', methods=['GET'])
+def test_data():
+    try:
+        # Kiểm tra số lượng môn học
+        mon_hoc_count = MonHoc.query.count()
+
+        # Kiểm tra số lượng phân công giáo viên
+        gv_mon_hoc_count = GiaoVienMonHocLopHocKhoa.query.count()
+
+        # Lấy danh sách tất cả môn học
+        mon_hoc_list = MonHoc.query.all()
+        mon_hoc_data = [{"id": mon.id, "ten": mon.ten_mon_hoc} for mon in mon_hoc_list]
+
+        return jsonify({
+            "so_mon_hoc": mon_hoc_count,
+            "so_phan_cong": gv_mon_hoc_count,
+            "danh_sach_mon": mon_hoc_data
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+# @app.route('/api/get_students_and_subjects', methods=['POST'])
+# def get_students_and_subjects():
+#     try:
+#         data = request.get_json()
+#         lop_id = data.get('lop_id')
+#         nam_hoc = data.get("namHoc")
+#         hoc_ky = data.get('hocKy')
+#
+#         id_khoa = dao.get_khoa_id(nam_hoc, hoc_ky)  # Correctly using dao.get_khoa_id
+#         id_lop_khoa_list = get_id_lopkhoa_by_id_lop_khoa([id_khoa], lop_id)  # Use the corrected function
+#         hs_id = get_list_id_hs_by_id_lopkhoa(id_lop_khoa_list[0]) # Get the first id_lop_khoa
+#         hs_info = get_hs_info_by_id_hs(hs_id)  # Get student info
+#
+#         return jsonify(hs_info)  # Return the student info
+#
+#     except Exception as ex:
+#         return jsonify({'error': str(ex)}), 400
+
+
+@app.route('/api/get_students_and_subjects', methods=['POST'])
+def api_get_students_and_subjects():
+    try:
+        data = request.json
+        lop_id = data.get('lop_id')
+        hoc_ky = data.get('hocKy')
+        nam_hoc = data.get('namHoc')
+        mon_hoc_id = data.get('monHocId')
+
+        # Lấy id_lopkhoa
+        khoa_id = dao.get_khoa_id(nam_hoc, hoc_ky)
+        if not khoa_id:
+            return jsonify({'error': 'Không tìm thấy khóa học'}), 404
+
+        id_lopkhoa = dao.get_id_lop_khoa(khoa_id, lop_id)
+        if not id_lopkhoa:
+            return jsonify({'error': 'Không tìm thấy lớp trong khóa học này'}), 404
+
+        # Lấy danh sách học sinh và điểm
+        students = dao.get_students_with_scores(id_lopkhoa, mon_hoc_id, hoc_ky)
+
+        return jsonify({
+            "students": students
+        })
+    except Exception as e:
+        print(f"Error in api_get_students_and_subjects: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 
 @login.user_loader
@@ -234,7 +320,6 @@ def load_user(user_id):
 # Nhập điểm
 
 def scores_input_view():
-
     return render_template('scores-input.html')
 
 
@@ -250,6 +335,7 @@ def get_hocsinh_1():
     list_id_hs = get_list_id_hs_by_id_lopkhoa(id_lop_khoa)
 
     return jsonify(get_hs_info_by_id_hs(list_id_hs))
+
 
 # @app.route("/create-class-list")
 # def class_list_view():
@@ -285,7 +371,7 @@ def get_hocsinh_not_in_class():
 
         print(f"nam_hoc: {nam_hoc}, khoi: {khoi}, lop_id: {lop_id}")
 
-        # 1. Lấy ID của khoa dựa trên ten_khoa (năm học)
+
         khoa_id_query = db.session.query(Khoa.id).filter(Khoa.ten_khoa == nam_hoc).first()
 
         if khoa_id_query is None:
@@ -301,21 +387,20 @@ def get_hocsinh_not_in_class():
                         .outerjoin(LopHoc, LopHocKhoa.id_lop == LopHoc.id)
                         .outerjoin(Khoa, LopHocKhoa.id_khoa == Khoa.id)
                         .filter(
-                            or_(
-                                HocSinhLopHocKhoa.id_lop_khoa == None,
-                                and_(
-                                    Khoa.id == khoa_id,
-                                    LopHoc.khoi == khoi,
-                                    LopHoc.id != lop_id
-                                )
-                            ),
-                            HocSinh.ngay_sinh >= datetime.strptime(f"{int(nam_hoc.split('-')[0]) - 18}-01-01", "%Y-%m-%d"),
-                            HocSinh.ngay_sinh <= datetime.strptime(f"{int(nam_hoc.split('-')[0]) - 15}-12-31", "%Y-%m-%d")
-                        )
+            or_(
+                HocSinhLopHocKhoa.id_lop_khoa == None,
+                and_(
+                    Khoa.id == khoa_id,
+                    LopHoc.khoi == khoi,
+                    LopHoc.id != lop_id
+                )
+            ),
+            HocSinh.ngay_sinh >= datetime.strptime(f"{int(nam_hoc.split('-')[0]) - 18}-01-01", "%Y-%m-%d"),
+            HocSinh.ngay_sinh <= datetime.strptime(f"{int(nam_hoc.split('-')[0]) - 15}-12-31", "%Y-%m-%d")
+        )
                         .all())
 
         print(f"hocsinh_list: {hocsinh_list}")
-
 
         hoc_sinh_info = [
             {
@@ -334,6 +419,44 @@ def get_hocsinh_not_in_class():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify([]), 500
+
+
+@app.route('/api/save_scores', methods=['POST'])
+def save_scores():
+    try:
+        data = request.get_json()
+        print("Received data:", data)  # Debug log
+
+        scores = data.get('scores', [])
+        mon_hoc_id = int(data.get('mon_hoc_id'))
+        hoc_ky = data.get('hoc_ky')
+
+        if not scores or not mon_hoc_id or not hoc_ky:
+            return jsonify({'error': 'Thiếu thông tin điểm hoặc môn học'}), 400
+
+        # Chuyển đổi học kỳ
+        hoc_ky_enum = HocKy.HK1 if hoc_ky == "HK1" else HocKy.HK2
+
+        # Lưu điểm
+        for score in scores:
+            student_id = int(score.get('student_id'))
+            diem_tx = score.get('diem_tx')
+            diem_gk = score.get('diem_gk')
+            diem_ck = score.get('diem_ck')
+
+            if diem_tx is not None:
+                dao.save_diem(student_id, mon_hoc_id, float(diem_tx), LoaiDiem.DIEMTX, hoc_ky_enum)
+            if diem_gk is not None:
+                dao.save_diem(student_id, mon_hoc_id, float(diem_gk), LoaiDiem.DIEMGK, hoc_ky_enum)
+            if diem_ck is not None:
+                dao.save_diem(student_id, mon_hoc_id, float(diem_ck), LoaiDiem.DIEMCK, hoc_ky_enum)
+
+        return jsonify({'message': 'Lưu điểm thành công'}), 200
+
+    except Exception as e:
+        print("Error saving scores:", str(e))  # Debug log
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/get_hocsinh', methods=['POST'])
 def get_hocsinh():
     data = request.get_json()
@@ -428,9 +551,51 @@ def add_hocsinh_to_lop():
         return jsonify({'message': 'Có lỗi xảy ra'}), 500
 
 
+@app.route('/scores-export')
+def scores_export():
+    return render_template('scores-export.html')
+
+@app.route('/api/get_scores', methods=['POST'])
+def get_scores():
+    try:
+        data = request.get_json()
+        nam_hoc = data.get('nam_hoc')
+        hoc_ky = data.get('hoc_ky')
+        lop_id = data.get('lop_id')
+        mon_hoc_id = data.get('mon_hoc_id')
+
+        # Chuyển đổi học kỳ
+        hoc_ky_enum = HocKy.HK1 if hoc_ky == "HK1" else HocKy.HK2
+
+        # Lấy điểm từ database
+        scores = dao.get_student_scores(lop_id, mon_hoc_id, hoc_ky_enum)
+        return jsonify(scores)
+
+    except Exception as e:
+        print(f"Error getting scores: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/get_bangdiem', methods=['POST'])
+def get_bangdiem():
+    try:
+        data = request.get_json()
+        lop_id = data.get('lop_id')
+        mon_hoc_id = data.get('mon_hoc_id')
+        hoc_ky = data.get('hoc_ky')
+
+        # Chuyển đổi học kỳ string sang enum
+        hoc_ky_enum = HocKy.HK1 if hoc_ky == "HK1" else HocKy.HK2
+
+        # Lấy điểm từ database
+        scores = dao.get_student_scores(lop_id, mon_hoc_id, hoc_ky_enum)
+        return jsonify(scores)
+
+    except Exception as e:
+        print(f"Error in get_bangdiem: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 if __name__ == "__main__":
     with app.app_context():
         from app import admin
+
         app.run(debug=True)

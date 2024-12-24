@@ -87,14 +87,50 @@ function loadHocsinh() {
         });
 }
 
-
 //function scores-input
 const namHocSelect = document.getElementById('namHoc');
 const hocKySelect = document.getElementById('hocKy');
 const lopSelect = document.getElementById('lop');
+const monHocSelect = document.getElementById('monHoc');
 const subjectHeaders = document.getElementById('subjectHeaders');
 const studentScores = document.getElementById('studentScores');
 const saveButton = document.getElementById('saveScores');
+
+
+
+
+document.getElementById('monHoc').addEventListener('change', async function() {
+    const monHocId = this.value;
+    const lopId = lopSelect.value;
+    const hocKy = hocKySelect.value;
+    const namHoc = namHocSelect.value;
+
+    if (!monHocId || !lopId || !hocKy || !namHoc) {
+        alert('Vui lòng chọn đầy đủ thông tin!');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/get_bangdiem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                mon_hoc_id: monHocId,
+                lop_id: lopId,
+                hoc_ky: hocKy,
+                nam_hoc: namHoc
+            })
+        });
+
+        const data = await response.json();
+        renderBangDiem(data);
+    } catch (error) {
+        console.error('Error fetching bảng điểm:', error);
+        alert('Có lỗi khi tải bảng điểm');
+    }
+});
 
 async function fetchNamHoc() {
     try {
@@ -128,6 +164,7 @@ namHocSelect.addEventListener('change', async () => {
         });
         hocKySelect.disabled = false;
         lopSelect.disabled = true;
+        monHocSelect.disabled = true; // Disable môn học
         clearTable();
     } catch (error) {
         console.error('Error fetching học kỳ:', error);
@@ -153,6 +190,7 @@ hocKySelect.addEventListener('change', async () => {
             lopSelect.innerHTML += `<option value="${lop.id}">${lop.ten}</option>`;
         });
         lopSelect.disabled = false;
+        monHocSelect.disabled = true;
         clearTable();
     } catch (error) {
         console.error('Error fetching lớp:', error);
@@ -164,62 +202,263 @@ lopSelect.addEventListener('change', async function() {
     const lopId = this.value;
     const hocKy = hocKySelect.value;
     const namHoc = namHocSelect.value;
+    const monHocSelect = document.getElementById('monHoc');
+
+    // Reset và disable môn học select
+    monHocSelect.innerHTML = '<option value="">-- Chọn môn học --</option>';
+    monHocSelect.disabled = true;
 
     if (!lopId || !hocKy || !namHoc) {
-        alert('Vui lòng chọn đầy đủ năm học, học kỳ, và lớp!');
+        clearTable();
         return;
     }
 
     try {
-        console.log('Sending request with:', { lopId, hocKy, namHoc });
+        console.log('Fetching môn học with:', { lopId, hocKy, namHoc });
+        const response = await fetch('/api/get_monhoc_by_lop', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                lop_id: lopId,
+                hoc_ky: hocKy,
+                nam_hoc: namHoc
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Received môn học data:', data);
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+
+        monHocSelect.innerHTML = '<option value="">-- Chọn môn học --</option>';
+        data.mon_hoc.forEach(mon => {
+            monHocSelect.innerHTML += `<option value="${mon.id}">${mon.ten_mon_hoc}</option>`;
+        });
+        monHocSelect.disabled = false;
+        clearTable();
+    } catch (error) {
+        console.error('Error fetching môn học:', error);
+        alert('Có lỗi khi tải danh sách môn học: ' + error.message);
+    }
+});
+// Sửa lại event listener của môn học
+monHocSelect.addEventListener('change', async function() {
+    const monHocId = this.value;
+    const lopId = lopSelect.value;
+    const hocKy = hocKySelect.value;
+    const namHoc = namHocSelect.value;
+
+    if (!monHocId || !lopId || !hocKy || !namHoc) {
+        clearTable();
+        return;
+    }
+
+    try {
         const response = await fetch('/api/get_students_and_subjects', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ lop_id: lopId, hocKy, namHoc })
+            body: JSON.stringify({
+                lop_id: lopId,
+                hocKy: hocKy,
+                namHoc: namHoc,
+                monHocId: monHocId
+            })
         });
 
-        const data = await response.json();
-        console.log('Received data:', data);
-
-        if (!Array.isArray(data) || data.length === 0) {
-            alert('Không có dữ liệu học sinh cho lớp đã chọn.');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
 
-        renderStudentTable(data);
+        const data = await response.json();
+
+        // Hiển thị bảng điểm
+        document.getElementById('classContent').style.display = 'block';
+
+        // Headers
+        subjectHeaders.innerHTML = `
+            <th>STT</th>
+            <th>Mã học sinh</th>
+            <th>Họ và tên</th>
+            <th>Điểm 15 phút</th>
+            <th>Điểm 1 tiết</th>
+            <th>Điểm cuối kỳ</th>
+        `;
+
+        // Students
+        studentScores.innerHTML = data.students.map((student, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${student.id}</td>
+                <td>${student.ho_ten}</td>
+                <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input"
+                    data-student-id="${student.id}" data-type="DIEMTX"
+                    value="${student.diem_tx || ''}"></td>
+                <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input"
+                    data-student-id="${student.id}" data-type="DIEMGK"
+                    value="${student.diem_gk || ''}"></td>
+                <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input"
+                    data-student-id="${student.id}" data-type="DIEMCK"
+                    value="${student.diem_ck || ''}"></td>
+            </tr>
+        `).join('');
+
     } catch (error) {
-        console.error('Error fetching student data:', error);
+        console.error('Error:', error);
         alert('Có lỗi khi tải dữ liệu học sinh');
     }
 });
 
+// Sửa lại hàm renderBangDiem để xử lý dữ liệu an toàn hơn
+function renderBangDiem(data) {
+    const students = data.students || [];
 
-// Hiển thị bảng danh sách học sinh
-function renderStudentTable(students) {
-    if (!Array.isArray(students) || students.length === 0) {
-        subjectHeaders.innerHTML = '<th colspan="8" class="text-center">Không có dữ liệu học sinh</th>';
+    if (students.length === 0) {
+        subjectHeaders.innerHTML = '<th colspan="5" class="text-center">Không có dữ liệu học sinh</th>';
         studentScores.innerHTML = '';
         return;
     }
 
-    const headers = ['STT', 'Họ và tên', 'Giới tính', 'Năm sinh', 'Địa chỉ', 'Điểm 15 phút', 'Điểm 1 tiết', 'Điểm cuối kỳ'];
-    subjectHeaders.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
+    // Headers
+    subjectHeaders.innerHTML = `
+        <th>STT</th>
+        <th>Họ và tên</th>
+        <th>Điểm 15 phút</th>
+        <th>Điểm 1 tiết</th>
+        <th>Điểm cuối kỳ</th>
+    `;
 
+    // Students
     studentScores.innerHTML = students.map((student, index) => `
         <tr>
             <td>${index + 1}</td>
             <td>${student.ho_ten || 'N/A'}</td>
-            <td>${student.gioi_tinh || 'N/A'}</td>
-            <td>${student.nam_sinh || 'N/A'}</td>
-            <td>${student.dia_chi || 'N/A'}</td>
-            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input" data-type="DIEMTX"></td>
-            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input" data-type="DIEMGK"></td>
-            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input" data-type="DIEMCK"></td>
+            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input"
+                data-student-id="${student.id}" data-type="DIEMTX"
+                value="${student.diem_tx || ''}"
+                ${student.id ? '' : 'disabled'}></td>
+            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input"
+                data-student-id="${student.id}" data-type="DIEMGK"
+                value="${student.diem_gk || ''}"
+                ${student.id ? '' : 'disabled'}></td>
+            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input"
+                data-student-id="${student.id}" data-type="DIEMCK"
+                value="${student.diem_ck || ''}"
+                ${student.id ? '' : 'disabled'}></td>
         </tr>
     `).join('');
 }
 
+document.getElementById('saveScores').addEventListener('click', async function() {
+    try {
+        const scores = [];
+        const rows = document.querySelectorAll('#studentScores tr');
+
+        rows.forEach(row => {
+            const studentId = row.querySelector('td:nth-child(2)').textContent;
+            const diemTX = row.querySelector('input[data-type="DIEMTX"]').value;
+            const diemGK = row.querySelector('input[data-type="DIEMGK"]').value;
+            const diemCK = row.querySelector('input[data-type="DIEMCK"]').value;
+
+            scores.push({
+                student_id: parseInt(studentId),
+                diem_tx: diemTX ? parseFloat(diemTX) : null,
+                diem_gk: diemGK ? parseFloat(diemGK) : null,
+                diem_ck: diemCK ? parseFloat(diemCK) : null
+            });
+        });
+
+        const monHocId = document.getElementById('monHoc').value;
+        const hocKy = document.getElementById('hocKy').value;
+
+        const response = await fetch('/api/save_scores', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                scores: scores,
+                mon_hoc_id: monHocId,
+                hoc_ky: hocKy
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('Lưu điểm thành công!');
+        } else {
+            throw new Error(result.error || 'Có lỗi xảy ra khi lưu điểm');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Lỗi: ' + error.message);
+    }
+});
+
+// Hiển thị bảng danh sách học sinh
+//function renderStudentTable(students) {
+//    if (!Array.isArray(students) || students.length === 0) {
+//        subjectHeaders.innerHTML = '<th colspan="8" class="text-center">Không có dữ liệu học sinh</th>';
+//        studentScores.innerHTML = '';
+//        return;
+//    }
+//
+//    const headers = ['STT', 'Họ và tên', 'Điểm 15 phút', 'Điểm 1 tiết', 'Điểm cuối kỳ'];
+//    subjectHeaders.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
+//
+//    studentScores.innerHTML = students.map((student, index) => `
+//        <tr>
+//            <td>${index + 1}</td>
+//            <td>${student.ho_ten || 'N/A'}</td>
+//
+//            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input" data-type="DIEMTX"></td>
+//            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input" data-type="DIEMGK"></td>
+//            <td><input type="number" min="0" max="10" step="0.1" class="form-control score-input" data-type="DIEMCK"></td>
+//        </tr>
+//    `).join('');
+//}
+
+
+//function renderStudentTable(data) {
+//    const { students, subjects } = data;
+//
+//    if (!students || students.length === 0) {
+//        subjectHeaders.innerHTML = '<th colspan="8" class="text-center">Không có dữ liệu học sinh</th>';
+//        studentScores.innerHTML = '';
+//        return;
+//    }
+//
+//    // Headers
+//    subjectHeaders.innerHTML = `
+//        <th>STT</th>
+//        <th>Họ và tên</th>
+//        ${subjects.map(subject => `<th>${subject.ten_mon_hoc}</th>`).join('')}
+//    `;
+//
+//    // Students
+//    studentScores.innerHTML = students.map((student, index) => `
+//        <tr>
+//            <td>${index + 1}</td>
+//            <td>${student.ho_ten || 'N/A'}</td>
+//            ${subjects.map(subject => `
+//                <td>
+//                    <input type="number" min="0" max="10" step="0.1" class="form-control score-input" data-student-id="${student.id}" data-subject-id="${subject.id}">
+//                </td>
+//            `).join('')}
+//        </tr>
+//    `).join('');
+//}
 // Xóa bảng khi thay đổi lựa chọn
 function clearTable() {
     subjectHeaders.innerHTML = '';
@@ -285,5 +524,7 @@ fetchNamHoc();
 //
 //     });
 // }
+//js xử lý xuất bảng điểm
+
 
 

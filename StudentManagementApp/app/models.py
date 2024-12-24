@@ -97,14 +97,18 @@ class Khoa(db.Model):
 #     id_ket_qua_hoc_tap = relationship("KetQuaHocTap", backref='diem', lazy=True)
 
 class Diem(db.Model):
+    __tablename__ = 'diem'
+
     id = Column(Integer, primary_key=True, autoincrement=True)
-    student_id = Column(Integer, ForeignKey(HocSinh.id), nullable=False)
-    subject_id = Column(Integer, ForeignKey(MonHoc.id), nullable=False)
-    diem = Column(Float, default=0)
-    lan = Column(Integer, default=1, autoincrement=True)
+    student_id = Column(Integer, ForeignKey('hoc_sinh.id'), nullable=False)
+    subject_id = Column(Integer, ForeignKey('mon_hoc.id'), nullable=False)
+    diem = Column(Float, nullable=False)
+    lan = Column(Integer, nullable=False, default=1)
     loai_diem = Column(Enum(LoaiDiem), nullable=False)
     hoc_ky = Column(Enum(HocKy), nullable=False)
-    id_ket_qua_hoc_tap = relationship("KetQuaHocTap", backref='diem', lazy=True)
+
+    def __str__(self):
+        return str(self.diem)
 
 class QuyDinh(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -254,15 +258,15 @@ def add_hs_to_lopkhoa():
 if __name__ == '__main__':
     with app.app_context():
         # Tạo models cho stu_manage_db
-        # db.create_all()
-        # # Nạp data các model vào db
-        # load_user_to_db('data/user.json')
-        # load_monhoc_to_db('data/monhoc.json')
-        # load_lophoc_to_db('data/lophoc.json')
-        # load_khoa_to_db('data/khoa.json')
-        # load_quy_dinh_to_db('data/quydinh.json')
-        # add_lop_to_khoa()
-        # add_hocsinh_to_lopkhoa()
+        db.create_all()
+        # Nạp data các model vào db
+        load_user_to_db('data/user.json')
+        load_monhoc_to_db('data/monhoc.json')
+        load_lophoc_to_db('data/lophoc.json')
+        load_khoa_to_db('data/khoa.json')
+        load_quy_dinh_to_db('data/quydinh.json')
+        add_lop_to_khoa()
+        add_hocsinh_to_lopkhoa()
         load_hs_to_db('data/hocsinh.json')
         add_hs_to_lopkhoa()
 

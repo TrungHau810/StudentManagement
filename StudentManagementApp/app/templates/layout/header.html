@@ -14,7 +14,7 @@
             <!-- Menu trái -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/">Trang chủ</a>
+                    <a class="nav-link active" aria-current="page" href="/">Wellcome</a>
                 </li>
                 {% if current_user.is_authenticated %}
                 {% if current_user.user_role.value == 4 %}
@@ -40,7 +40,7 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="/scores-input">Nhập điểm</a></li>
-                        <li><a class="dropdown-item" href="#">Xuất điểm</a></li>
+                        <li><a class="dropdown-item" href="/scores-export">Xuất điểm</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -71,11 +71,11 @@
                     </a>
                 </li>
                 <li class="nav-link text-light">
-                    <a class="nav-link text-light" href="/logout">Đăng xuất</a>
+                    <a class="nav-link text-light bg-danger  border border-danger rounded px-3" href="/logout">Đăng xuất</a>
                 </li>
                 {% else %}
                 <li class="nav-link text-light">
-                    <a class="nav-link text-light" href="/login">Đăng nhập</a>
+                    <a class="nav-link text-light bg-success  border border-success rounded px-3" href="/login">Đăng nhập</a>
                 </li>
                 {% endif %}
             </ul>

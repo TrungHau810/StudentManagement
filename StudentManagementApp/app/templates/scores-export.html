@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container my-5">
-    <h1 class="text-center mb-4">Nhập Điểm Học Sinh</h1>
+    <h1 class="text-center mb-4">Xuất Điểm Học Sinh</h1>
 
     <div class="row mb-4">
         <div class="col-md-3">
@@ -37,27 +37,27 @@
                 </select>
             </div>
         </div>
-        </div>
-
-        <div id="classContent">
-            <div id="class1" class="class-panel">
-                <h2 class="mb-3" id="class-name"></h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped text-center">
-                        <thead class="table-dark ">
-                        <tr id="subjectHeaders">
-
-                        </tr>
-                        </thead>
-                        <tbody id="studentScores">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="text-center mt-3">
-                <button class="btn btn-primary" id="saveScores">Lưu Điểm</button>
-            </div>
-        </div>
     </div>
 
-    {% endblock %}
+    <div id="classContent" style="display: none;">
+        <div class="table-responsive  text-center">
+            <table class="table table-bordered table-striped ">
+                <thead class="table-dark">
+                    <tr>
+                        <th>STT</th>
+                        <th>Mã học sinh</th>
+                        <th>Họ và tên</th>
+                        <th>Điểm 15 phút</th>
+                        <th>Điểm 1 tiết</th>
+                        <th>Điểm cuối kỳ</th>
+                    </tr>
+                </thead>
+                <tbody id="studentScores">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='scores_export.js') }}"></script>
+{% endblock %}
